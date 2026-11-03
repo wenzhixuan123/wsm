@@ -1,0 +1,875 @@
+<!doctype html>
+
+<html lang="zh-CN">
+
+<head>
+
+<meta charset="utf-8">
+
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+
+<title>四格 · 每日任务</title>
+
+<style>
+
+*{margin:0;padding:0;box-sizing:border-box}
+
+/* ===== 黑色主题（默认） ===== */
+
+:root{
+
+  --bg:#0e1014;--card:#171a21;--line:#242936;--line-hover:#3a4256;
+
+  --text:#e6e8ee;--dim:#7b8496;--task:#1e222b;--hover:#252a35;
+
+  --chk-border:#4a5265;--mark:#3c4d75;--mark-text:#fff;--flash:#3d4f78;
+
+  --shadow:0 14px 34px rgba(0,0,0,.55);
+
+}
+
+/* ===== 白色主题 ===== */
+
+body[data-theme="light"]{
+
+  --bg:#f4f6f9;--card:#ffffff;--line:#e3e6ec;--line-hover:#c9cfda;
+
+  --text:#1b1f28;--dim:#8b93a3;--task:#f0f2f6;--hover:#e8ebf1;
+
+  --chk-border:#b5bdca;--mark:#d8e6ff;--mark-text:#123a75;--flash:#cfe0ff;
+
+  --shadow:0 14px 34px rgba(30,40,60,.18);
+
+}
+
+/* ===== 淡蓝色主题 ===== */
+
+body[data-theme="blue"]{
+
+  --bg:#e6f0fa;--card:#f6fbff;--line:#cfe0f1;--line-hover:#a9c6e2;
+
+  --text:#1d3a5c;--dim:#6f8aa5;--task:#eaf3fc;--hover:#dcebf9;
+
+  --chk-border:#9fbdd8;--mark:#c3ddf6;--mark-text:#14395f;--flash:#bcdaf5;
+
+  --shadow:0 14px 34px rgba(60,100,150,.22);
+
+}
+
+html,body{height:100%}
+
+body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;flex-direction:column;overflow:hidden;transition:background .2s,color .2s}
+
+header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
+
+.brand{font-size:15px;font-weight:700;letter-spacing:.5px}
+
+.spacer{flex:1}
+
+button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}
+
+button:hover{border-color:var(--line-hover)}
+
+/* 主题切换 */
+
+.themes{display:flex;gap:7px;align-items:center}
+
+.theme-dot{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);padding:0;cursor:pointer;flex:0 0 auto}
+
+.theme-dot[data-theme="dark"]{background:#0e1014}
+
+.theme-dot[data-theme="light"]{background:#ffffff}
+
+.theme-dot[data-theme="blue"]{background:#dceaf8}
+
+.theme-dot.active{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #f2994a}
+
+/* 搜索区 */
+
+.search-wrap{position:relative;padding:8px 12px 10px;border-bottom:1px solid var(--line);background:var(--bg);z-index:30;display:flex;flex-direction:column;gap:8px}
+
+.search-modes{display:flex;gap:6px}
+
+.mode-btn{background:transparent;border:1px solid transparent;color:var(--dim);font-size:12px;padding:4px 10px;border-radius:12px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .2s}
+
+.mode-btn.active{background:var(--card);color:var(--text);border-color:var(--line)}
+
+.search-input-row{position:relative}
+
+#searchInput,#dateInput{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text);font-size:16px;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
+
+#searchInput::placeholder,#dateInput::placeholder{color:var(--dim)}
+
+#searchInput:focus,#dateInput:focus{border-color:var(--line-hover)}
+
+body[data-theme="dark"] #dateInput{color-scheme:dark}
+
+body[data-theme="light"] #dateInput,body[data-theme="blue"] #dateInput{color-scheme:light}
+
+.search-panel{display:none;position:absolute;left:12px;right:12px;top:calc(100% - 4px);background:var(--card);border:1px solid var(--line);border-radius:12px;max-height:52vh;overflow-y:auto;z-index:60;box-shadow:var(--shadow)}
+
+.s-item{display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line)}
+
+.s-item:last-child{border-bottom:0}
+
+.s-item:hover{background:var(--hover)}
+
+.s-date{color:var(--dim);flex:0 0 auto;font-variant-numeric:tabular-nums}
+
+.s-quad{flex:0 0 auto;font-size:12px;opacity:.9}
+
+.s-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+
+.s-title.done{text-decoration:line-through;opacity:.45}
+
+.s-title mark{background:var(--mark);color:var(--mark-text);border-radius:3px;padding:0 2px}
+
+.no-result{padding:16px;color:var(--dim);font-size:13px;text-align:center}
+
+/* 时间线 */
+
+main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow-scrolling:touch}
+
+.day-block{margin-bottom:24px}
+
+.day-head{display:flex;align-items:center;gap:8px;padding:8px 2px;margin-bottom:8px;position:sticky;top:0;background:var(--bg);z-index:20;font-size:14px;color:var(--dim);border-bottom:1px solid transparent;transition:background .3s}
+
+.day-head .day-date{font-weight:600;color:var(--text);opacity:.85;font-variant-numeric:tabular-nums}
+
+.day-head.today .day-date{color:#f2994a;opacity:1}
+
+.today-tag{font-size:11px;background:#f2994a;color:#14161c;border-radius:5px;padding:1px 6px;font-weight:700}
+
+.collapse-icon{margin-left:auto;cursor:pointer;font-size:12px;color:var(--dim);padding:4px 8px;user-select:none;transition:transform .2s;display:flex;align-items:center;justify-content:center}
+
+.day-block.collapsed .collapse-icon{transform:rotate(-90deg)}
+
+.day-block.collapsed .day-grid{display:none}
+
+.day-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+
+.quadrant{background:var(--card);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:150px;max-height:260px;border-top:3px solid var(--c);box-shadow:0 0 0 1px var(--line) inset}
+
+.qhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;letter-spacing:.5px}
+
+.qname{font-weight:600;color:var(--c)}
+
+.qcount{color:var(--dim);font-size:11px}
+
+.tasks{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
+
+.task{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:var(--task);margin-bottom:6px;font-size:13px;transition:background .2s}
+
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--chk-border);flex:0 0 auto;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;font-weight:700;color:transparent;user-select:none}
+
+.chk:hover{border-color:var(--c)}
+
+.task.done .chk{background:var(--c);border-color:var(--c);color:#fff}
+
+.task .txt{flex:1;cursor:pointer;word-break:break-word;line-height:1.35}
+
+.task.done .txt{text-decoration:line-through;opacity:.4}
+
+.del{border:0;background:none;color:var(--dim);padding:0 2px;font-size:15px;opacity:0;cursor:pointer;font-family:inherit}
+
+.task:hover .del,.task:active .del{opacity:.7}
+
+.addrow{display:flex;gap:5px;margin-top:5px}
+
+.add{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;color:var(--text);border-radius:9px;padding:8px;font-size:16px;outline:none;font-family:inherit}
+
+.add:focus{border-color:var(--c)}
+
+.addbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--task);color:var(--text);border-radius:9px;width:36px;font-size:18px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
+
+.addbtn:active{background:var(--c);border-color:var(--c);color:#fff}
+
+.tasks::-webkit-scrollbar,.search-panel::-webkit-scrollbar{width:4px}
+.tasks::-webkit-scrollbar-thumb,.search-panel::-webkit-scrollbar-thumb{background:var(--chk-border);border-radius:2px}
+@keyframes flashBg{0%,100%{background:var(--task)}20%,70%{background:var(--flash)}}
+.task.flash{animation:flashBg 1.7s ease}
+@media(hover:none){.del{opacity:.4}}
+@media(max-width:640px){
+  header{padding:8px 10px;gap:6px}
+  .brand{font-size:14px}
+  .theme-dot{width:20px;height:20px}
+  main{padding:10px 8px 50px}
+  .day-grid{gap:7px}
+  .quadrant{padding:8px;border-radius:11px;min-height:140px;max-height:240px}
+  .task{font-size:12.5px;padding:6px 7px;gap:6px}
+  .qhead{font-size:11.5px}
+  .add{padding:7px;font-size:16px}
+  .addbtn{width:33px;font-size:17px}
+}
+</style>
+</head>
+ <body data-theme="dark">
+
+<header>
+
+  <div class="brand">四格 · 每日任务</div>
+
+  <span class="spacer"></span>
+
+  <div class="themes">
+
+    <button class="theme-dot" data-theme="dark" title="黑色主题" aria-label="黑色主题"></button>
+
+    <button class="theme-dot" data-theme="light" title="白色主题" aria-label="白色主题"></button>
+
+    <button class="theme-dot" data-theme="blue" title="淡蓝色主题" aria-label="淡蓝色主题"></button>
+
+  </div>
+
+  <button id="todayBtn">今天</button>
+
+  <button id="carry">⟲ 顺延昨日未完成</button>
+
+</header>
+
+<div class="search-wrap">
+
+  <div class="search-modes">
+
+    <button class="mode-btn active" data-mode="keyword">关键词</button>
+
+    <button class="mode-btn" data-mode="date">日期</button>
+
+  </div>
+
+  <div class="search-input-row">
+
+    <input id="searchInput" type="search" placeholder="搜索任务关键词..." autocomplete="off">
+
+    <input id="dateInput" type="date" style="display:none">
+
+  </div>
+
+  <div id="searchPanel" class="search-panel"></div>
+
+</div>
+
+<main id="main"></main>
+
+<script>
+/* ===== 主题 ===== */
+
+const THEME_KEY='cross4-theme';
+
+function applyTheme(t){
+
+  document.body.dataset.theme=t;
+
+  localStorage.setItem(THEME_KEY,t);
+
+  document.querySelectorAll('.theme-dot').forEach(b=>{
+
+    b.classList.toggle('active',b.dataset.theme===t);
+
+  });
+
+}
+
+document.querySelectorAll('.theme-dot').forEach(b=>{
+
+  b.addEventListener('click',()=>applyTheme(b.dataset.theme));
+
+});
+
+applyTheme(localStorage.getItem(THEME_KEY)||'dark');
+
+/* ===== 数据 ===== */
+
+const KEY='cross4-v1';
+
+const $=s=>document.querySelector(s);
+
+const dk=d=>d.toLocaleDateString('sv-SE');
+
+const todayKey=()=>dk(new Date());
+
+const shiftDay=(k,n)=>{const d=new Date(k+'T00:00:00');d.setDate(d.getDate()+n);return dk(d);};
+
+const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
+
+const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+
+let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
+
+  quads:[{n:'工作',c:'#5b8def'},{n:'生活',c:'#f2994a'},{n:'学习',c:'#27ae60'},{n:'健康',c:'#eb5757'}],
+
+  tasks:[]
+
+};
+
+const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
+
+/* 折叠状态存储 */
+
+const COLLAPSE_KEY='cross4-collapsed';
+
+let collapsedState=JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}');
+
+/* 所有有任务的日期 + 今天，倒序（最新在最上） */
+
+function datesToRender(){
+
+  const set=new Set(db.tasks.map(t=>t.date));
+
+  set.add(todayKey());
+
+  return [...set].sort((a,b)=>b.localeCompare(a));
+
+}
+
+function updateCount(sec,date,qi){
+
+  const list=db.tasks.filter(x=>x.date===date&&x.qi===qi);
+
+  const c=sec.querySelector('.qcount');
+
+  if(c) c.textContent=`${list.filter(x=>!x.done).length}/${list.length}`;
+
+}
+
+function createTaskEl(task,sec,date,qi){
+
+  const el=document.createElement('div');
+
+  el.className='task'+(task.done?' done':'');
+
+  el.dataset.taskId=task.id;
+
+  el.innerHTML=`<span class="chk">✓</span><span class="txt">${esc(task.title)}</span><button class="del" title="删除">×</button>`;
+
+  const toggle=()=>{
+
+    task.done=!task.done; save();
+
+    el.classList.toggle('done',task.done);
+
+    updateCount(sec,date,qi);
+
+  };
+
+  el.querySelector('.chk').onclick=toggle;
+
+  el.querySelector('.txt').onclick=toggle;
+
+  el.querySelector('.del').onclick=e=>{
+
+    e.stopPropagation();
+
+    db.tasks=db.tasks.filter(x=>x.id!==task.id);
+
+    save();
+
+    render();
+
+  };
+
+  return el;
+
+}
+
+function render(){
+
+  const main=$('#main');
+
+  const st=main.scrollTop;
+
+  main.innerHTML='';
+
+  const tkey=todayKey();
+
+  
+
+  datesToRender().forEach(date=>{
+
+    const isToday=date===tkey;
+
+    const isPast=date<tkey;
+
+    
+
+    let isCollapsed;
+
+    if (collapsedState[date] !== undefined) {
+
+      isCollapsed = collapsedState[date];
+
+    } else {
+
+      isCollapsed = isPast;
+
+    }
+
+    const d=new Date(date+'T00:00:00');
+
+    const wd='日一二三四五六'[d.getDay()];
+
+    const block=document.createElement('section');
+
+    block.className='day-block' + (isCollapsed ? ' collapsed' : '');
+
+    block.dataset.date=date;
+
+    block.innerHTML=`<div class="day-head${isToday?' today':''}">
+
+        <span class="day-date">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>
+
+        <span class="day-wd">周${wd}</span>
+
+        ${isToday?'<span class="today-tag">今天</span>':''}
+
+        <span class="collapse-icon" title="点击折叠/展开">▼</span>
+
+      </div>`;
+
+      
+
+    block.querySelector('.collapse-icon').onclick = (e) => {
+
+      e.stopPropagation();
+
+      const currentlyCollapsed = block.classList.toggle('collapsed');
+
+      collapsedState[date] = currentlyCollapsed;
+
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+
+    };
+
+    const grid=document.createElement('div');
+
+    grid.className='day-grid';
+
+    db.quads.forEach((q,i)=>{
+
+      const list=db.tasks.filter(x=>x.date===date&&x.qi===i)
+
+        .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+
+      const sec=document.createElement('section');
+
+      sec.className='quadrant';
+
+      sec.style.setProperty('--c',q.c);
+
+      sec.innerHTML=`<div class="qhead">
+
+          <span class="qname">${esc(q.n)}</span>
+
+          <span class="qcount">${list.filter(x=>!x.done).length}/${list.length}</span>
+
+        </div>
+
+        <div class="tasks"></div>
+
+        <div class="addrow">
+
+          <input class="add" type="text" placeholder="＋ 添加任务" enterkeyhint="done" data-date="${date}" data-qi="${i}">
+
+          <button class="addbtn" title="添加任务">＋</button>
+
+        </div>`;
+
+      const box=sec.querySelector('.tasks');
+
+      list.forEach(task=>box.appendChild(createTaskEl(task,sec,date,i)));
+
+      const inp=sec.querySelector('.add');
+
+      const btn=sec.querySelector('.addbtn');
+
+      const addTask=()=>{
+
+        const v=inp.value.trim();
+
+        if(!v){inp.focus();return;}
+
+        db.tasks.push({id:uid(),date,qi:i,title:v,done:false,createdAt:Date.now()});
+
+        save();
+
+        render();
+
+        const ni=document.querySelector(`.add[data-date="${date}"][data-qi="${i}"]`);
+
+        if(ni){
+
+          ni.focus();
+
+          const nb=ni.closest('.quadrant').querySelector('.tasks');
+
+          nb.scrollTop=nb.scrollHeight;
+
+        }
+
+      };
+
+      btn.onclick=addTask;
+
+      inp.onkeydown=e=>{ if(e.key==='Enter'||e.keyCode===13){e.preventDefault();addTask();} };
+
+      grid.appendChild(sec);
+
+    });
+
+    block.appendChild(grid);
+
+    main.appendChild(block);
+
+  });
+
+  main.scrollTop=st;
+
+}
+
+/* 滚动到今天 */
+
+function scrollToToday(){
+
+  const t=todayKey();
+
+  const block=document.querySelector(`.day-block[data-date="${t}"]`);
+
+  if(block && block.classList.contains('collapsed')){
+
+    block.classList.remove('collapsed');
+
+    collapsedState[t]=false;
+
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+
+  }
+
+  if(block) block.scrollIntoView({behavior:'smooth',block:'start'});
+
+}
+
+$('#todayBtn').onclick=scrollToToday;
+
+/* 顺延昨日未完成到今天 */
+
+$('#carry').onclick=()=>{
+
+  const t=todayKey();
+
+  const prev=shiftDay(t,-1);
+
+  const exist=new Set(db.tasks.filter(x=>x.date===t).map(x=>x.title));
+
+  let n=0;
+
+  db.tasks.filter(x=>x.date===prev&&!x.done).forEach(x=>{
+
+    if(exist.has(x.title))return;
+
+    db.tasks.push({id:uid(),date:t,qi:x.qi,title:x.title,done:false,createdAt:Date.now()});
+
+    n++;
+
+  });
+
+  save(); render();
+
+  setTimeout(scrollToToday,60);
+
+  const btn=$('#carry');
+
+  btn.textContent=n?`已顺延 ${n} 项`:'昨日无未完成';
+
+  setTimeout(()=>btn.textContent='⟲ 顺延昨日未完成',1500);
+
+};
+
+/* ===== 搜索功能 ===== */
+
+let searchMode = 'keyword';
+
+let searchTimer = null;
+
+// 切换模式
+
+document.querySelectorAll('.mode-btn').forEach(btn => {
+
+  btn.addEventListener('click', () => {
+
+    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
+
+    btn.classList.add('active');
+
+    searchMode = btn.dataset.mode;
+
+    
+
+    if (searchMode === 'keyword') {
+
+      $('#searchInput').style.display = 'block';
+
+      $('#dateInput').style.display = 'none';
+
+      $('#searchPanel').style.display = 'none';
+
+      $('#searchInput').focus();
+
+    } else {
+
+      $('#searchInput').style.display = 'none';
+
+      $('#dateInput').style.display = 'block';
+
+      $('#searchPanel').style.display = 'none';
+
+      try { $('#dateInput').showPicker(); } catch(e) {}
+
+    }
+
+  });
+
+});
+
+// 关键词搜索
+// 关键词搜索逻辑
+
+function highlight(text,kw){
+
+  const i=text.toLowerCase().indexOf(kw);
+
+  if(i<0) return esc(text);
+
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+kw.length))+'</mark>'+esc(text.slice(i+kw.length));
+
+}
+
+function doKeywordSearch(raw){
+
+  const panel=$('#searchPanel');
+
+  const kw=raw.trim().toLowerCase();
+
+  if(!kw){panel.style.display='none';panel.innerHTML='';return;}
+
+  const matches=db.tasks
+
+    .filter(t=>t.title.toLowerCase().includes(kw))
+
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+
+  if(!matches.length){
+
+    panel.innerHTML='<div class="no-result">没有找到相关任务</div>';
+
+    panel.style.display='block';
+
+    return;
+
+  }
+
+  panel.innerHTML=matches.map(t=>{
+
+    const q=db.quads[t.qi]||{n:'',c:'#888'};
+
+    const dd=new Date(t.date+'T00:00:00');
+
+    const ds=`${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()}`;
+
+    return `<div class="s-item" data-id="${t.id}">
+
+      <span class="s-date">${ds}</span>
+
+      <span class="s-quad" style="color:${q.c}">${esc(q.n)}</span>
+
+      <span class="s-title${t.done?' done':''}">${highlight(t.title,kw)}</span>
+
+    </div>`;
+
+  }).join('');
+
+  panel.style.display='block';
+
+  panel.querySelectorAll('.s-item').forEach(el=>{
+
+    el.addEventListener('click',()=>{
+
+      const id=el.dataset.id;
+
+      panel.style.display='none';
+
+      $('#searchInput').value='';
+
+      $('#searchInput').blur();
+
+      setTimeout(()=>jumpToTask(id),30);
+
+    });
+
+  });
+
+}
+
+// 跳转并高亮任务
+
+function jumpToTask(id){
+
+  const el=document.querySelector(`.task[data-task-id="${id}"]`);
+
+  if(!el)return;
+
+  const block = el.closest('.day-block');
+
+  if(block && block.classList.contains('collapsed')){
+
+    block.classList.remove('collapsed');
+
+    collapsedState[block.dataset.date] = false;
+
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+
+  }
+
+  setTimeout(() => {
+
+    el.scrollIntoView({behavior:'smooth',block:'center'});
+
+    el.classList.add('flash');
+
+    setTimeout(()=>el.classList.remove('flash'),1700);
+
+  }, 50);
+
+}
+
+$('#searchInput').addEventListener('input',e=>{
+
+  clearTimeout(searchTimer);
+
+  const v=e.target.value;
+
+  searchTimer=setTimeout(()=>doKeywordSearch(v),120);
+
+});
+
+// 日期搜索逻辑
+
+$('#dateInput').addEventListener('change', e => {
+
+  const v = e.target.value; // YYYY-MM-DD
+
+  if (!v) return;
+
+  
+
+  const block = document.querySelector(`.day-block[data-date="${v}"]`);
+
+  const panel = $('#searchPanel');
+
+  
+
+  if (block) {
+
+    // 若折叠则展开
+
+    if (block.classList.contains('collapsed')) {
+
+      block.classList.remove('collapsed');
+
+      collapsedState[v] = false;
+
+      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+
+    }
+
+    // 平滑滚动到该日期区块
+
+    block.scrollIntoView({behavior:'smooth', block:'start'});
+
+    
+
+    // 日期头闪烁高亮提示
+
+    const head = block.querySelector('.day-head');
+
+    if (head) {
+
+      head.style.background = 'var(--mark)';
+
+      setTimeout(() => { head.style.background = ''; }, 1000);
+
+    }
+
+    
+
+    panel.style.display = 'none';
+
+    $('#dateInput').value = '';
+
+    $('#dateInput').blur();
+
+  } else {
+
+    // 没找到该日期记录
+
+    const [y, m, d] = v.split('-');
+
+    panel.innerHTML = `<div class="no-result">${y}年${parseInt(m)}月${parseInt(d)}日 暂无任务</div>`;
+
+    panel.style.display = 'block';
+
+    setTimeout(() => {
+
+      panel.style.display = 'none';
+
+      $('#dateInput').value = '';
+
+      $('#dateInput').blur();
+
+    }, 2000);
+
+  }
+
+});
+
+// 点击空白处隐藏搜索结果
+
+document.addEventListener('click',e=>{
+
+  const wrap=document.querySelector('.search-wrap');
+
+  if(wrap&&!wrap.contains(e.target)){
+
+    const p=$('#searchPanel');
+
+    p.style.display='none';
+
+  }
+
+});
+
+/* 跨天自动刷新 */
+
+let lastToday=todayKey();
+
+setInterval(()=>{
+
+  const t=todayKey();
+
+  if(t!==lastToday){
+
+    lastToday=t;
+
+    render();
+
+  }
+
+},30000);
+
+render();
+
+</script>
+
+</body>
+
+</html>
+ 
