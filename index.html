@@ -154,7 +154,7 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 
 .tasks{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
 
-.task{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:var(--task);margin-bottom:6px;font-size:13px;transition:background .2s}
+.task{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:var(--task);margin-bottom:6px;font-size:13px;transition:background .2s;touch-action:pan-y;-webkit-touch-callout:none;-webkit-user-select:none;user-select:none}
 
 .chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--chk-border);flex:0 0 auto;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;font-weight:700;color:transparent;user-select:none}
 
@@ -166,9 +166,15 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 
 .task.done .txt{text-decoration:line-through;opacity:.4}
 
-.del{border:0;background:none;color:var(--dim);padding:0 2px;font-size:15px;opacity:0;cursor:pointer;font-family:inherit}
+.del{border:0;background:none;color:var(--dim);padding:2px 4px;opacity:0;cursor:pointer;font-family:inherit;transition:opacity .15s;line-height:0;flex:0 0 auto;pointer-events:none;display:flex;align-items:center;justify-content:center}
 
-.task:hover .del,.task:active .del{opacity:.7}
+.task.swiped .del{opacity:1;pointer-events:auto;color:#eb5757}
+
+@media(hover:hover){
+
+  .task:hover .del{opacity:.7;pointer-events:auto}
+
+}
 
 .addrow{display:flex;gap:5px;margin-top:5px}
 
@@ -197,7 +203,6 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 .tasks::-webkit-scrollbar-thumb,.search-panel::-webkit-scrollbar-thumb{background:var(--chk-border);border-radius:2px}
 @keyframes flashBg{0%,100%{background:var(--task)}20%,70%{background:var(--flash)}}
 .task.flash{animation:flashBg 1.7s ease}
-@media(hover:none){.del{opacity:.4}}
 @media(max-width:640px){
   header{padding:8px 10px;gap:6px}
   .brand{font-size:14px}
@@ -352,7 +357,7 @@ function updateCount(sec,date,qi){
 
   if(c) c.textContent=`${list.filter(x=>!x.done).length}/${list.length}`;
 
-  }function createTaskEl(task,sec,date,qi){
+    }function createTaskEl(task,sec,date,qi){
 
   const el=document.createElement('div');
 
@@ -360,7 +365,7 @@ function updateCount(sec,date,qi){
 
   el.dataset.taskId=task.id;
 
-  el.innerHTML=`<span class="chk">✓</span><span class="txt">${esc(task.title)}</span><button class="del" title="删除">×</button>`;
+  el.innerHTML=`<span class="chk">✓</span><span class="txt">${esc(task.title)}</span><button class="del" title="删除"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path></svg></button>`;
 
   const toggle=()=>{
 
@@ -387,6 +392,64 @@ function updateCount(sec,date,qi){
     render();
 
   };
+
+  /* 长按 + 左滑显示垃圾桶（触摸设备） */
+
+  let pressTimer=null, startX=0, startY=0, swipeReady=false;
+
+  el.addEventListener('touchstart', e => {
+
+    if (e.touches.length !== 1) return;
+
+    const t = e.touches[0];
+
+    startX = t.clientX;
+
+    startY = t.clientY;
+
+    swipeReady = false;
+
+    clearTimeout(pressTimer);
+
+    pressTimer = setTimeout(() => { swipeReady = true; }, 400);
+
+  }, {passive:true});
+
+  el.addEventListener('touchmove', e => {
+
+    if (!swipeReady) return;
+
+    const t = e.touches[0];
+
+    const dx = t.clientX - startX;
+
+    const dy = t.clientY - startY;
+
+    if (Math.abs(dy) > 15 && Math.abs(dy) > Math.abs(dx)) {
+
+      swipeReady = false;
+
+      clearTimeout(pressTimer);
+
+      return;
+
+    }
+
+    if (dx < -25) {
+
+      el.classList.add('swiped');
+
+      swipeReady = false;
+
+      clearTimeout(pressTimer);
+
+    }
+
+  }, {passive:true});
+
+  el.addEventListener('touchend', () => { clearTimeout(pressTimer); swipeReady = false; });
+
+  el.addEventListener('touchcancel', () => { clearTimeout(pressTimer); swipeReady = false; });
 
   return el;
 
@@ -742,83 +805,7 @@ function renderDeletePanel(){
 
   };
 
-    }// 关键词搜索
-
-function highlight(text,kw){
-
-  const i=text.toLowerCase().indexOf(kw);
-
-  if(i<0) return esc(text);
-
-  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+kw.length))+'</mark>'+esc(text.slice(i+kw.length));
-
-}
-
-function doKeywordSearch(raw){
-
-  const panel=$('#searchPanel');
-
-  const kw=raw.trim().toLowerCase();
-
-  if(!kw){panel.style.display='none';panel.innerHTML='';return;}
-
-  const matches=db.tasks
-
-    .filter(t=>t.title.toLowerCase().includes(kw))
-
-    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
-
-  if(!matches.length){
-
-    panel.innerHTML='<div class="no-result">没有找到相关任务</div>';
-
-    panel.style.display='block';
-
-    return;
-
-  }
-
-  panel.innerHTML=matches.map(t=>{
-
-    const q=db.quads[t.qi]||{n:'',c:'#888'};
-
-    const dd=new Date(t.date+'T00:00:00');
-
-    const ds=`${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()}`;
-
-    return `<div class="s-item" data-id="${t.id}">
-
-      <span class="s-date">${ds}</span>
-
-      <span class="s-quad" style="color:${q.c}">${esc(q.n)}</span>
-
-      <span class="s-title${t.done?' done':''}">${highlight(t.title,kw)}</span>
-
-    </div>`;
-
-  }).join('');
-
-  panel.style.display='block';
-
-  panel.querySelectorAll('.s-item').forEach(el=>{
-
-    el.addEventListener('click',()=>{
-
-      const id=el.dataset.id;
-
-      panel.style.display='none';
-
-      $('#searchInput').value='';
-
-      $('#searchInput').blur();
-
-      setTimeout(()=>jumpToTask(id),30);
-
-    });
-
-  });
-
-}// 跳转并高亮任务
+  }// 跳转并高亮任务
 
 function jumpToTask(id){
 
@@ -928,17 +915,47 @@ $('#dateInput').addEventListener('change', e => {
 
 });
 
-// 点击空白处隐藏搜索结果
+// 点击空白处：收起滑出的垃圾桶 / 隐藏搜索结果 / 退出删除日期模式
 
 document.addEventListener('click',e=>{
 
+  // 收起所有已滑出的删除按钮（点垃圾桶本身除外，垃圾桶已有 stopPropagation）
+
+  if (!e.target.closest('.del')) {
+
+    document.querySelectorAll('.task.swiped').forEach(t => t.classList.remove('swiped'));
+
+  }
+
   const wrap=document.querySelector('.search-wrap');
 
-  if(wrap&&!wrap.contains(e.target)){
+  if(wrap && !wrap.contains(e.target)){
 
     const p=$('#searchPanel');
 
     p.style.display='none';
+
+    // 点击搜索区外部时，退出删除日期模式
+
+    if (searchMode === 'delete') {
+
+      document.querySelectorAll('.mode-btn').forEach(b => {
+
+        b.classList.toggle('active', b.dataset.mode === 'keyword');
+
+      });
+
+      searchMode = 'keyword';
+
+      $('#searchInput').style.display = 'block';
+
+      $('#dateInput').style.display = 'none';
+
+      $('#deletePanel').classList.remove('show');
+
+      $('#deletePanel').innerHTML = '';
+
+    }
 
   }
 
