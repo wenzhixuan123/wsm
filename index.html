@@ -178,7 +178,22 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 
 .addbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--task);color:var(--text);border-radius:9px;width:36px;font-size:18px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
 
-.addbtn:active{background:var(--c);border-color:var(--c);color:#fff}.tasks::-webkit-scrollbar,.search-panel::-webkit-scrollbar{width:4px}
+.addbtn:active{background:var(--c);border-color:var(--c);color:#fff}
+
+/* 多选删除面板 */
+.delete-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;max-height:46vh;overflow-y:auto;box-shadow:0 0 0 1px var(--line) inset}
+.delete-panel.show{display:block}
+.dp-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
+.dp-item:last-of-type{border-bottom:0}
+.dp-item:hover{background:var(--hover)}
+.dp-item input[type=checkbox]{width:16px;height:16px;flex:0 0 auto;accent-color:#f2994a;cursor:pointer}
+.dp-date{flex:1;font-variant-numeric:tabular-nums}
+.dp-count{color:var(--dim);font-size:12px;flex:0 0 auto}
+.dp-tools{display:flex;gap:8px;padding:8px 10px;border-top:1px solid var(--line);background:var(--card);position:sticky;bottom:0}
+.dp-tools button{flex:1}
+.dp-danger{background:#eb5757;border-color:#eb5757;color:#fff}
+.dp-danger:hover{border-color:#eb5757;opacity:.9}
+.dp-empty{padding:18px;text-align:center;color:var(--dim);font-size:13px}.tasks::-webkit-scrollbar,.search-panel::-webkit-scrollbar{width:4px}
 .tasks::-webkit-scrollbar-thumb,.search-panel::-webkit-scrollbar-thumb{background:var(--chk-border);border-radius:2px}
 @keyframes flashBg{0%,100%{background:var(--task)}20%,70%{background:var(--flash)}}
 .task.flash{animation:flashBg 1.7s ease}
@@ -227,6 +242,8 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 
     <button class="mode-btn" data-mode="date">日期</button>
 
+    <button class="mode-btn" data-mode="delete">删除日期</button>
+
   </div>
 
   <div class="search-input-row">
@@ -236,6 +253,8 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
     <input id="dateInput" type="date" style="display:none">
 
   </div>
+
+  <div id="deletePanel" class="delete-panel"></div>
 
   <div id="searchPanel" class="search-panel"></div>
 
@@ -285,8 +304,7 @@ document.querySelectorAll('.theme-dot').forEach(b=>{
 
 });
 
-applyTheme(localStorage.getItem(THEME_KEY)||'dark');
-/* ===== 数据 ===== */
+applyTheme(localStorage.getItem(THEME_KEY)||'dark');/* ===== 数据 ===== */
 
 const $=s=>document.querySelector(s);
 
@@ -334,7 +352,7 @@ function updateCount(sec,date,qi){
 
   if(c) c.textContent=`${list.filter(x=>!x.done).length}/${list.length}`;
 
-}function createTaskEl(task,sec,date,qi){
+  }function createTaskEl(task,sec,date,qi){
 
   const el=document.createElement('div');
 
@@ -524,7 +542,9 @@ function render(){
 
   main.scrollTop=st;
 
-}/* 滚动到今天 */
+  if (searchMode === 'delete') renderDeletePanel();
+
+        }/* 滚动到今天 */
 
 function scrollToToday(){
 
@@ -580,9 +600,7 @@ $('#carry').onclick=()=>{
 
   setTimeout(()=>btn.textContent='⟲ 顺延昨日未完成',1500);
 
-};
-
-/* ===== 搜索功能 ===== */
+};/* ===== 搜索功能 ===== */
 
 let searchMode = 'keyword';
 
@@ -600,7 +618,13 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 
     searchMode = btn.dataset.mode;
 
-    
+    $('#searchPanel').style.display = 'none';
+
+    $('#searchPanel').innerHTML = '';
+
+    $('#dateInput').value = '';
+
+    $('#deletePanel').classList.remove('show');
 
     if (searchMode === 'keyword') {
 
@@ -608,19 +632,23 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 
       $('#dateInput').style.display = 'none';
 
-      $('#searchPanel').style.display = 'none';
-
       $('#searchInput').focus();
 
-    } else {
+    } else if (searchMode === 'date') {
 
       $('#searchInput').style.display = 'none';
 
       $('#dateInput').style.display = 'block';
 
-      $('#searchPanel').style.display = 'none';
-
       try { $('#dateInput').showPicker(); } catch(e) {}
+
+    } else if (searchMode === 'delete') {
+
+      $('#searchInput').style.display = 'none';
+
+      $('#dateInput').style.display = 'none';
+
+      renderDeletePanel();
 
     }
 
@@ -628,7 +656,93 @@ document.querySelectorAll('.mode-btn').forEach(btn => {
 
 });
 
-// 关键词搜索
+// 多选删除面板
+
+function renderDeletePanel(){
+
+  const panel = $('#deletePanel');
+
+  if (searchMode !== 'delete') { panel.classList.remove('show'); panel.innerHTML = ''; return; }
+
+  const dates = [...new Set(db.tasks.map(t => t.date))].sort((a, b) => b.localeCompare(a));
+
+  if (!dates.length) {
+
+    panel.innerHTML = '<div class="dp-empty">暂无任何任务</div>';
+
+    panel.classList.add('show');
+
+    return;
+
+  }
+
+  const items = dates.map(d => {
+
+    const n = db.tasks.filter(t => t.date === d).length;
+
+    const dd = new Date(d + 'T00:00:00');
+
+    const ds = `${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()} 周${'日一二三四五六'[dd.getDay()]}`;
+
+    return `<label class="dp-item"><input type="checkbox" value="${d}"><span class="dp-date">${ds}</span><span class="dp-count">${n} 条</span></label>`;
+
+  }).join('');
+
+  const tools = `<div class="dp-tools"><button id="dpSelectAll">全选</button><button id="dpDelete" class="dp-danger">删除选中</button></div>`;
+
+  panel.innerHTML = items + tools;
+
+  panel.classList.add('show');
+
+  $('#dpSelectAll').onclick = () => {
+
+    const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
+
+    const all = boxes.length && boxes.every(b => b.checked);
+
+    boxes.forEach(b => b.checked = !all);
+
+    $('#dpSelectAll').textContent = all ? '全选' : '取消全选';
+
+  };
+
+  panel.querySelectorAll('input[type=checkbox]').forEach(b => {
+
+    b.addEventListener('change', () => {
+
+      const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
+
+      const all = boxes.length && boxes.every(x => x.checked);
+
+      $('#dpSelectAll').textContent = all ? '取消全选' : '全选';
+
+    });
+
+  });
+
+  $('#dpDelete').onclick = () => {
+
+    const sel = [...panel.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
+
+    if (!sel.length) { alert('请先勾选要删除的日期'); return; }
+
+    const total = sel.reduce((s, d) => s + db.tasks.filter(t => t.date === d).length, 0);
+
+    if (!confirm(`确定删除选中 ${sel.length} 个日期、共 ${total} 条任务？`)) return;
+
+    db.tasks = db.tasks.filter(t => !sel.includes(t.date));
+
+    sel.forEach(d => { delete collapsedState[d]; });
+
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+
+    save();
+
+    render();
+
+  };
+
+    }// 关键词搜索
 
 function highlight(text,kw){
 
@@ -746,25 +860,25 @@ $('#searchInput').addEventListener('input',e=>{
 
 });
 
-// 日期搜索逻辑
+// 日期搜索（删除模式走 deletePanel，不经过这里）
 
 $('#dateInput').addEventListener('change', e => {
 
-  const v = e.target.value; // YYYY-MM-DD
+  const v = e.target.value;
 
   if (!v) return;
 
-  
-
-  const block = document.querySelector(`.day-block[data-date="${v}"]`);
+  if (searchMode === 'delete') { $('#dateInput').value = ''; $('#dateInput').blur(); return; }
 
   const panel = $('#searchPanel');
 
-  
+  const [y, m, d] = v.split('-');
+
+  const pretty = `${y}年${parseInt(m)}月${parseInt(d)}日`;
+
+  const block = document.querySelector(`.day-block[data-date="${v}"]`);
 
   if (block) {
-
-    // 若折叠则展开
 
     if (block.classList.contains('collapsed')) {
 
@@ -776,13 +890,7 @@ $('#dateInput').addEventListener('change', e => {
 
     }
 
-    // 平滑滚动到该日期区块
-
     block.scrollIntoView({behavior:'smooth', block:'start'});
-
-    
-
-    // 日期头闪烁高亮提示
 
     const head = block.querySelector('.day-head');
 
@@ -794,8 +902,6 @@ $('#dateInput').addEventListener('change', e => {
 
     }
 
-    
-
     panel.style.display = 'none';
 
     $('#dateInput').value = '';
@@ -804,11 +910,7 @@ $('#dateInput').addEventListener('change', e => {
 
   } else {
 
-    // 没找到该日期记录
-
-    const [y, m, d] = v.split('-');
-
-    panel.innerHTML = `<div class="no-result">${y}年${parseInt(m)}月${parseInt(d)}日 暂无任务</div>`;
+    panel.innerHTML = `<div class="no-result">${pretty} 暂无任务</div>`;
 
     panel.style.display = 'block';
 
