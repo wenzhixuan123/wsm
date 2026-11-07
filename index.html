@@ -357,7 +357,7 @@ function updateCount(sec,date,qi){
 
   if(c) c.textContent=`${list.filter(x=>!x.done).length}/${list.length}`;
 
-    }function createTaskEl(task,sec,date,qi){
+}function createTaskEl(task,sec,date,qi){
 
   const el=document.createElement('div');
 
@@ -607,7 +607,7 @@ function render(){
 
   if (searchMode === 'delete') renderDeletePanel();
 
-        }/* 滚动到今天 */
+}/* 滚动到今天 */
 
 function scrollToToday(){
 
@@ -805,7 +805,83 @@ function renderDeletePanel(){
 
   };
 
-  }// 跳转并高亮任务
+      }// 关键词搜索
+
+function highlight(text,kw){
+
+  const i=text.toLowerCase().indexOf(kw);
+
+  if(i<0) return esc(text);
+
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+kw.length))+'</mark>'+esc(text.slice(i+kw.length));
+
+}
+
+function doKeywordSearch(raw){
+
+  const panel=$('#searchPanel');
+
+  const kw=raw.trim().toLowerCase();
+
+  if(!kw){panel.style.display='none';panel.innerHTML='';return;}
+
+  const matches=db.tasks
+
+    .filter(t=>t.title.toLowerCase().includes(kw))
+
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+
+  if(!matches.length){
+
+    panel.innerHTML='<div class="no-result">没有找到相关任务</div>';
+
+    panel.style.display='block';
+
+    return;
+
+  }
+
+  panel.innerHTML=matches.map(t=>{
+
+    const q=db.quads[t.qi]||{n:'',c:'#888'};
+
+    const dd=new Date(t.date+'T00:00:00');
+
+    const ds=`${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()}`;
+
+    return `<div class="s-item" data-id="${t.id}">
+
+      <span class="s-date">${ds}</span>
+
+      <span class="s-quad" style="color:${q.c}">${esc(q.n)}</span>
+
+      <span class="s-title${t.done?' done':''}">${highlight(t.title,kw)}</span>
+
+    </div>`;
+
+  }).join('');
+
+  panel.style.display='block';
+
+  panel.querySelectorAll('.s-item').forEach(el=>{
+
+    el.addEventListener('click',()=>{
+
+      const id=el.dataset.id;
+
+      panel.style.display='none';
+
+      $('#searchInput').value='';
+
+      $('#searchInput').blur();
+
+      setTimeout(()=>jumpToTask(id),30);
+
+    });
+
+  });
+
+}// 跳转并高亮任务
 
 function jumpToTask(id){
 
