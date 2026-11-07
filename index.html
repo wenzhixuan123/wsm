@@ -1,188 +1,70 @@
 <!doctype html>
-
 <html lang="zh-CN">
-
 <head>
-
 <meta charset="utf-8">
-
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
-
-<title>四格 · 每日任务</title>
-
+<title>四格 · 每日任务（日期独立象限版）</title>
 <style>
-
 *{margin:0;padding:0;box-sizing:border-box}
-
-/* ===== 黑色主题（默认） ===== */
-
 :root{
-
   --bg:#0e1014;--card:#171a21;--line:#242936;--line-hover:#3a4256;
-
   --text:#e6e8ee;--dim:#7b8496;--task:#1e222b;--hover:#252a35;
-
   --chk-border:#4a5265;--mark:#3c4d75;--mark-text:#fff;--flash:#3d4f78;
-
   --shadow:0 14px 34px rgba(0,0,0,.55);
-
 }
-
-/* ===== 白色主题 ===== */
-
 body[data-theme="light"]{
-
   --bg:#f4f6f9;--card:#ffffff;--line:#e3e6ec;--line-hover:#c9cfda;
-
   --text:#1b1f28;--dim:#8b93a3;--task:#f0f2f6;--hover:#e8ebf1;
-
   --chk-border:#b5bdca;--mark:#d8e6ff;--mark-text:#123a75;--flash:#cfe0ff;
-
   --shadow:0 14px 34px rgba(30,40,60,.18);
-
 }
-
-/* ===== 淡蓝色主题 ===== */
-
 body[data-theme="blue"]{
-
   --bg:#e6f0fa;--card:#f6fbff;--line:#cfe0f1;--line-hover:#a9c6e2;
-
   --text:#1d3a5c;--dim:#6f8aa5;--task:#eaf3fc;--hover:#dcebf9;
-
   --chk-border:#9fbdd8;--mark:#c3ddf6;--mark-text:#14395f;--flash:#bcdaf5;
-
   --shadow:0 14px 34px rgba(60,100,150,.22);
-
-}html,body{height:100%}
-
+}
+html,body{height:100%}
 body{background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"PingFang SC","Microsoft YaHei",sans-serif;display:flex;flex-direction:column;overflow:hidden;transition:background .2s,color .2s}
-
 header{display:flex;align-items:center;gap:8px;padding:10px 14px;border-bottom:1px solid var(--line);flex-wrap:wrap}
-
 .brand{font-size:15px;font-weight:700;letter-spacing:.5px}
-
 .spacer{flex:1}
-
 button{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:8px;padding:6px 10px;font-size:13px;cursor:pointer;font-family:inherit;transition:border-color .15s,background .15s}
-
 button:hover{border-color:var(--line-hover)}
-
-/* 主题切换 */
-
 .themes{display:flex;gap:7px;align-items:center}
-
 .theme-dot{width:22px;height:22px;border-radius:50%;border:1px solid var(--line);padding:0;cursor:pointer;flex:0 0 auto}
-
 .theme-dot[data-theme="dark"]{background:#0e1014}
-
 .theme-dot[data-theme="light"]{background:#ffffff}
-
 .theme-dot[data-theme="blue"]{background:#dceaf8}
-
 .theme-dot.active{box-shadow:0 0 0 2px var(--bg),0 0 0 3.5px #f2994a}
-
-/* 搜索区 */
-
 .search-wrap{position:relative;padding:8px 12px 10px;border-bottom:1px solid var(--line);background:var(--bg);z-index:30;display:flex;flex-direction:column;gap:8px}
-
 .search-modes{display:flex;gap:6px}
-
 .mode-btn{background:transparent;border:1px solid transparent;color:var(--dim);font-size:12px;padding:4px 10px;border-radius:12px;cursor:pointer;font-family:inherit;font-weight:600;transition:all .2s}
-
 .mode-btn.active{background:var(--card);color:var(--text);border-color:var(--line)}
-
 .search-input-row{position:relative}
-
 #searchInput,#dateInput{width:100%;background:var(--card);border:1px solid var(--line);border-radius:10px;padding:9px 12px;color:var(--text);font-size:16px;outline:none;font-family:inherit;-webkit-appearance:none;appearance:none}
-
 #searchInput::placeholder,#dateInput::placeholder{color:var(--dim)}
-
 #searchInput:focus,#dateInput:focus{border-color:var(--line-hover)}
-
-body[data-theme="dark"] #dateInput{color-scheme:dark}
-
-body[data-theme="light"] #dateInput,body[data-theme="blue"] #dateInput{color-scheme:light}
-
+body[data-theme="dark"] #dateInput,body[data-theme="dark"] #editDue{color-scheme:dark}
+body[data-theme="light"] #dateInput,body[data-theme="light"] #editDue,
+body[data-theme="blue"] #dateInput,body[data-theme="blue"] #editDue{color-scheme:light}
 .search-panel{display:none;position:absolute;left:12px;right:12px;top:calc(100% - 4px);background:var(--card);border:1px solid var(--line);border-radius:12px;max-height:52vh;overflow-y:auto;z-index:60;box-shadow:var(--shadow)}
-
 .s-item{display:flex;align-items:center;gap:8px;padding:11px 12px;cursor:pointer;font-size:13px;border-bottom:1px solid var(--line)}
-
 .s-item:last-child{border-bottom:0}
-
 .s-item:hover{background:var(--hover)}
-
 .s-date{color:var(--dim);flex:0 0 auto;font-variant-numeric:tabular-nums}
-
 .s-quad{flex:0 0 auto;font-size:12px;opacity:.9}
-
 .s-title{flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-
 .s-title.done{text-decoration:line-through;opacity:.45}
-
 .s-title mark{background:var(--mark);color:var(--mark-text);border-radius:3px;padding:0 2px}
-
-.no-result{padding:16px;color:var(--dim);font-size:13px;text-align:center}/* 时间线 */
-
-main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow-scrolling:touch}
-
-.day-block{margin-bottom:24px}
-
-.day-head{display:flex;align-items:center;gap:8px;padding:8px 2px;margin-bottom:8px;position:sticky;top:0;background:var(--bg);z-index:20;font-size:14px;color:var(--dim);border-bottom:1px solid transparent;transition:background .3s}
-
-.day-head .day-date{font-weight:600;color:var(--text);opacity:.85;font-variant-numeric:tabular-nums}
-
-.day-head.today .day-date{color:#f2994a;opacity:1}
-
-.today-tag{font-size:11px;background:#f2994a;color:#14161c;border-radius:5px;padding:1px 6px;font-weight:700}
-
-.collapse-icon{margin-left:auto;cursor:pointer;font-size:12px;color:var(--dim);padding:4px 8px;user-select:none;transition:transform .2s;display:flex;align-items:center;justify-content:center}
-
-.day-block.collapsed .collapse-icon{transform:rotate(-90deg)}
-
-.day-block.collapsed .day-grid{display:none}
-
-.day-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-
-.quadrant{background:var(--card);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:150px;max-height:260px;border-top:3px solid var(--c);box-shadow:0 0 0 1px var(--line) inset}
-
-.qhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;letter-spacing:.5px}
-
-.qname{font-weight:600;color:var(--c)}
-
-.qcount{color:var(--dim);font-size:11px}
-
-.tasks{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
-
-.task{display:flex;align-items:center;gap:7px;padding:7px 8px;border-radius:9px;background:var(--task);margin-bottom:6px;font-size:13px;transition:background .2s}
-
-.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--chk-border);flex:0 0 auto;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;font-weight:700;color:transparent;user-select:none}
-
-.chk:hover{border-color:var(--c)}
-
-.task.done .chk{background:var(--c);border-color:var(--c);color:#fff}
-
-.task .txt{flex:1;cursor:pointer;word-break:break-word;line-height:1.35}
-
-.task.done .txt{text-decoration:line-through;opacity:.4}
-
-.del{border:0;background:none;color:var(--dim);padding:0 2px;font-size:15px;opacity:0;cursor:pointer;font-family:inherit}
-
-.task:hover .del,.task:active .del{opacity:.7}
-
-.addrow{display:flex;gap:5px;margin-top:5px}
-
-.add{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;color:var(--text);border-radius:9px;padding:8px;font-size:16px;outline:none;font-family:inherit}
-
-.add:focus{border-color:var(--c)}
-
-.addbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--task);color:var(--text);border-radius:9px;width:36px;font-size:18px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
-
-.addbtn:active{background:var(--c);border-color:var(--c);color:#fff}
-
-/* 多选删除面板 */
-.delete-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;max-height:46vh;overflow-y:auto;box-shadow:0 0 0 1px var(--line) inset}
+.no-result{padding:16px;color:var(--dim);font-size:13px;text-align:center}
+.delete-panel{display:none;background:var(--card);border:1px solid var(--line);border-radius:12px;max-height:52vh;overflow-y:auto;box-shadow:0 0 0 1px var(--line) inset}
 .delete-panel.show{display:block}
+.dp-range{display:flex;flex-direction:column;gap:6px;padding:10px;border-bottom:1px solid var(--line);background:var(--bg);position:sticky;top:0;z-index:2}
+.dp-range-inputs{display:flex;gap:6px;align-items:center;font-size:12px;color:var(--dim)}
+.dp-range-inputs input{flex:1;min-width:0;background:var(--card);border:1px solid var(--line);border-radius:8px;padding:6px 8px;color:var(--text);font-size:13px;font-family:inherit;outline:none;-webkit-appearance:none;appearance:none}
+.dp-range-inputs span{flex:0 0 auto}
+#dpRangeDelete{padding:7px;font-size:13px;border-radius:8px}
 .dp-item{display:flex;align-items:center;gap:9px;padding:10px 12px;border-bottom:1px solid var(--line);font-size:13px;cursor:pointer}
 .dp-item:last-of-type{border-bottom:0}
 .dp-item:hover{background:var(--hover)}
@@ -193,85 +75,178 @@ main{flex:1;overflow-y:auto;padding:14px 12px 50px;min-height:0;-webkit-overflow
 .dp-tools button{flex:1}
 .dp-danger{background:#eb5757;border-color:#eb5757;color:#fff}
 .dp-danger:hover{border-color:#eb5757;opacity:.9}
-.dp-empty{padding:18px;text-align:center;color:var(--dim);font-size:13px}.tasks::-webkit-scrollbar,.search-panel::-webkit-scrollbar{width:4px}
-.tasks::-webkit-scrollbar-thumb,.search-panel::-webkit-scrollbar-thumb{background:var(--chk-border);border-radius:2px}
+.dp-empty{padding:18px;text-align:center;color:var(--dim);font-size:13px}
+main{flex:1;overflow-y:auto;padding:14px 12px 90px;min-height:0;-webkit-overflow-scrolling:touch}
+.day-block{margin-bottom:24px}
+.day-head{display:flex;align-items:center;gap:8px;padding:8px 2px;margin-bottom:8px;position:sticky;top:0;background:var(--bg);z-index:20;font-size:14px;color:var(--dim);border-bottom:1px solid transparent;transition:background .3s}
+.day-head .day-date{font-weight:600;color:var(--text);opacity:.85;font-variant-numeric:tabular-nums}
+.day-head.today .day-date{color:#f2994a;opacity:1}
+.today-tag{font-size:11px;background:#f2994a;color:#14161c;border-radius:5px;padding:1px 6px;font-weight:700}
+.collapse-icon{margin-left:auto;cursor:pointer;font-size:12px;color:var(--dim);padding:4px 8px;user-select:none;transition:transform .2s;display:flex;align-items:center;justify-content:center}
+.day-block.collapsed .collapse-icon{transform:rotate(-90deg)}
+.day-block.collapsed .day-grid{display:none}
+.day-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.quadrant{background:var(--card);border-radius:14px;padding:10px;display:flex;flex-direction:column;min-height:150px;max-height:260px;border-top:3px solid var(--c);box-shadow:0 0 0 1px var(--line) inset}
+.qhead{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:7px;font-size:12px;letter-spacing:.5px}
+.qname{font-weight:600;color:var(--c)}
+.qcount{color:var(--dim);font-size:11px}
+.tasks{flex:1;overflow-y:auto;min-height:0;-webkit-overflow-scrolling:touch}
+.task{display:flex;align-items:center;gap:6px;padding:7px 8px;border-radius:9px;background:var(--task);margin-bottom:6px;font-size:13px;transition:background .2s,box-shadow .2s}
+.chk{width:16px;height:16px;border-radius:4px;border:1.5px solid var(--chk-border);flex:0 0 auto;cursor:pointer;transition:.15s;display:flex;align-items:center;justify-content:center;font-size:12px;line-height:1;font-weight:700;color:transparent;user-select:none}
+.chk:hover{border-color:var(--c)}
+.task.done .chk{background:var(--c);border-color:var(--c);color:#fff}
+.task-body{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
+.task .txt{cursor:pointer;word-break:break-word;line-height:1.35;touch-action:manipulation;user-select:none}
+.task.done .txt{text-decoration:line-through;opacity:.4}
+.task.done .task-meta{opacity:.5}
+.task-meta{font-size:11px;color:var(--dim);display:flex;gap:8px;flex-wrap:wrap;margin-top:1px}
+.task-meta .due{font-weight:600}
+.task-meta .due.soon{color:#f2994a}
+.task-meta .due.overdue{color:#eb5757}
+.task-meta .note{opacity:.85;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;max-width:100%}
+.task.due-soon{box-shadow:inset 0 0 0 1.5px #f2994a}
+.task.due-overdue{box-shadow:inset 0 0 0 1.5px #eb5757}
+.task .edit,.task .del{border:0;background:none;color:var(--dim);padding:0 2px;font-size:14px;opacity:0;cursor:pointer;font-family:inherit;flex:0 0 auto}
+.task:hover .edit,.task:hover .del,.task:active .edit,.task:active .del{opacity:.7}
+.inline-edit{flex:1;background:var(--bg);border:1px solid var(--c);border-radius:6px;padding:3px 6px;color:var(--text);font-size:13px;font-family:inherit;outline:none;min-width:0}
+.addrow{display:flex;gap:5px;margin-top:5px}
+.add{flex:1;min-width:0;border:1px dashed var(--line);background:transparent;color:var(--text);border-radius:9px;padding:8px;font-size:16px;outline:none;font-family:inherit}
+.add:focus{border-color:var(--c)}
+.addbtn{flex:0 0 auto;border:1px solid var(--line);background:var(--task);color:var(--text);border-radius:9px;width:36px;font-size:18px;font-weight:600;line-height:1;cursor:pointer;display:flex;align-items:center;justify-content:center;padding:0;font-family:inherit}
+.addbtn:active{background:var(--c);border-color:var(--c);color:#fff}
+.load-more{display:block;width:100%;padding:12px;margin:4px 0 8px;background:var(--card);border:1px dashed var(--line);border-radius:10px;color:var(--dim);font-size:13px;cursor:pointer;font-family:inherit;text-align:center}
+.load-more:hover{border-color:var(--line-hover);color:var(--text)}
+.tasks::-webkit-scrollbar,.search-panel::-webkit-scrollbar,.delete-panel::-webkit-scrollbar,.modal-content::-webkit-scrollbar{width:4px}
+.tasks::-webkit-scrollbar-thumb,.search-panel::-webkit-scrollbar-thumb,.delete-panel::-webkit-scrollbar-thumb,.modal-content::-webkit-scrollbar-thumb{background:var(--chk-border);border-radius:2px}
 @keyframes flashBg{0%,100%{background:var(--task)}20%,70%{background:var(--flash)}}
 .task.flash{animation:flashBg 1.7s ease}
-@media(hover:none){.del{opacity:.4}}
+.modal{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;align-items:center;justify-content:center;padding:16px}
+.modal.show{display:flex}
+.modal-content{background:var(--card);border-radius:14px;padding:18px;max-width:440px;width:100%;max-height:86vh;overflow-y:auto;box-shadow:var(--shadow);border:1px solid var(--line)}
+.modal-content h3{font-size:15px;margin-bottom:12px;font-weight:600}
+.modal-content label{display:block;font-size:12px;color:var(--dim);margin-bottom:10px}
+.modal-content label input[type=text],
+.modal-content label input[type=datetime-local],
+.modal-content label textarea{
+  display:block;width:100%;margin-top:4px;background:var(--bg);border:1px solid var(--line);
+  border-radius:8px;padding:8px 10px;color:var(--text);font-size:14px;font-family:inherit;
+  outline:none;-webkit-appearance:none;appearance:none
+}
+.modal-content label input:focus,
+.modal-content label textarea:focus{border-color:var(--line-hover)}
+.modal-content label textarea{resize:vertical;min-height:60px}
+.modal-actions{display:flex;gap:8px;margin-top:14px;justify-content:flex-end;flex-wrap:wrap}
+.modal-actions button{padding:8px 14px}
+.modal-primary{background:#f2994a;border-color:#f2994a;color:#14161c;font-weight:600}
+.modal-primary:hover{border-color:#f2994a;opacity:.92}
+.quad-row{display:flex;gap:8px;align-items:center;margin-bottom:10px}
+.quad-row input[type=text]{flex:1;min-width:0;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:7px 10px;color:var(--text);font-size:14px;font-family:inherit;outline:none}
+.quad-row input[type=text]:focus{border-color:var(--line-hover)}
+.quad-row input[type=color]{width:38px;height:34px;border:1px solid var(--line);border-radius:8px;padding:2px;background:transparent;cursor:pointer;flex:0 0 auto}
+.quad-row .hid{display:flex;align-items:center;gap:4px;font-size:12px;color:var(--dim);white-space:nowrap;margin-bottom:0;flex:0 0 auto}
+.quad-row .hid input{accent-color:#f2994a;cursor:pointer}
+#toast{
+  position:fixed;left:50%;bottom:24px;transform:translate(-50%,80px);
+  background:#1e222b;color:#fff;padding:10px 14px;border-radius:10px;font-size:13px;
+  display:flex;align-items:center;gap:12px;z-index:300;opacity:0;
+  transition:transform .25s, opacity .25s;pointer-events:none;
+  box-shadow:0 10px 24px rgba(0,0,0,.45);max-width:calc(100% - 32px);
+  border:1px solid rgba(255,255,255,.08)
+}
+#toast.show{transform:translate(-50%,0);opacity:1;pointer-events:auto}
+#toast span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+#toast button{background:transparent;border:1px solid rgba(255,255,255,.35);color:#f2994a;padding:4px 10px;border-radius:6px;font-weight:600;font-size:12px;flex:0 0 auto}
+#toast button:hover{border-color:#f2994a}
+@media(hover:none){
+  .task .edit,.task .del{opacity:.55}
+}
 @media(max-width:640px){
   header{padding:8px 10px;gap:6px}
   .brand{font-size:14px}
   .theme-dot{width:20px;height:20px}
-  main{padding:10px 8px 50px}
+  main{padding:10px 8px 90px}
   .day-grid{gap:7px}
   .quadrant{padding:8px;border-radius:11px;min-height:140px;max-height:240px}
-  .task{font-size:12.5px;padding:6px 7px;gap:6px}
+  .task{font-size:12.5px;padding:6px 7px;gap:5px}
   .qhead{font-size:11.5px}
   .add{padding:7px;font-size:16px}
   .addbtn{width:33px;font-size:17px}
+  .modal-content{padding:16px}
 }
 </style>
 </head>
- <body data-theme="dark">
-
+<body data-theme="dark">
 <header>
-
-  <div class="brand">四格 · 每日任务</div>
-
+  <div class="brand">四格 · 每日任务（单日独立象限）</div>
   <span class="spacer"></span>
-
   <div class="themes">
-
     <button class="theme-dot" data-theme="dark" title="黑色主题" aria-label="黑色主题"></button>
-
     <button class="theme-dot" data-theme="light" title="白色主题" aria-label="白色主题"></button>
-
     <button class="theme-dot" data-theme="blue" title="淡蓝色主题" aria-label="淡蓝色主题"></button>
-
   </div>
-
   <button id="todayBtn">今天</button>
-
   <button id="carry">⟲ 顺延昨日未完成</button>
-
-</header><div class="search-wrap">
-
+  <button id="exportBtn" title="导出 JSON 备份">⬇ 导出</button>
+  <button id="importBtn" title="导入 JSON 备份">⬆ 导入</button>
+  <input type="file" id="importFile" accept="application/json,.json" style="display:none">
+  <button id="quadSettingsBtn" title="象限设置（当前日期）">⚙</button>
+</header>
+<div class="search-wrap">
   <div class="search-modes">
-
     <button class="mode-btn active" data-mode="keyword">关键词</button>
-
     <button class="mode-btn" data-mode="date">日期</button>
-
     <button class="mode-btn" data-mode="delete">删除日期</button>
-
   </div>
-
   <div class="search-input-row">
-
     <input id="searchInput" type="search" placeholder="搜索任务关键词..." autocomplete="off">
-
     <input id="dateInput" type="date" style="display:none">
-
   </div>
-
   <div id="deletePanel" class="delete-panel"></div>
-
   <div id="searchPanel" class="search-panel"></div>
-
 </div>
-
 <main id="main"></main>
-
+<div id="taskModal" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <h3>编辑任务</h3>
+    <label>标题
+      <input type="text" id="editTitle" maxlength="200">
+    </label>
+    <label>备注（可选）
+      <textarea id="editNote" maxlength="500" placeholder="补充说明、链接、上下文…"></textarea>
+    </label>
+    <label>截止时间（可选）
+      <input type="datetime-local" id="editDue">
+    </label>
+    <div class="modal-actions">
+      <button id="taskCancel">取消</button>
+      <button id="taskSave" class="modal-primary">保存</button>
+    </div>
+  </div>
+</div>
+<div id="quadSettings" class="modal" aria-hidden="true">
+  <div class="modal-content" role="dialog" aria-modal="true">
+    <h3>当日象限设置 <span id="quadSettingDate"></span></h3>
+    <div id="quadList"></div>
+    <div class="modal-actions" style="justify-content:space-between">
+      <button id="quadReset">恢复当日默认</button>
+      <div style="display:flex;gap:8px">
+        <button id="quadCancel">取消</button>
+        <button id="quadSave" class="modal-primary">保存</button>
+      </div>
+    </div>
+  </div>
+</div>
+<div id="toast" role="status" aria-live="polite"></div>
 <script>
-/* ===== 存储键（wsm 独立命名空间，与 daiii 隔离） ===== */
 const THEME_KEY='wsm:cross4-theme';
-const KEY='wsm:cross4-v1';
+const KEY='wsm:cross4-dayquad-v1';
 const COLLAPSE_KEY='wsm:cross4-collapsed';
-
-/* 一次性迁移：wsm 首次打开时，把 daiii 的现有数据复制一份作为起点 */
-if (!localStorage.getItem('wsm:migrated')) {
-  if (!localStorage.getItem(KEY) && localStorage.getItem('cross4-v1')) {
-    localStorage.setItem(KEY, localStorage.getItem('cross4-v1'));
+if (!localStorage.getItem('wsm:migrated-dayquad')) {
+  if (!localStorage.getItem(KEY) && localStorage.getItem('wsm:cross4-v1')) {
+    const old = JSON.parse(localStorage.getItem('wsm:cross4-v1'));
+    const newDb = defaultDb();
+    newDb.tasks = old.tasks || [];
+    localStorage.setItem(KEY, JSON.stringify(newDb));
   }
   if (!localStorage.getItem(THEME_KEY) && localStorage.getItem('cross4-theme')) {
     localStorage.setItem(THEME_KEY, localStorage.getItem('cross4-theme'));
@@ -279,715 +254,810 @@ if (!localStorage.getItem('wsm:migrated')) {
   if (!localStorage.getItem(COLLAPSE_KEY) && localStorage.getItem('cross4-collapsed')) {
     localStorage.setItem(COLLAPSE_KEY, localStorage.getItem('cross4-collapsed'));
   }
-  localStorage.setItem('wsm:migrated', '1');
+  localStorage.setItem('wsm:migrated-dayquad', '1');
 }
-
-/* ===== 主题 ===== */
-
 function applyTheme(t){
-
   document.body.dataset.theme=t;
-
   localStorage.setItem(THEME_KEY,t);
-
   document.querySelectorAll('.theme-dot').forEach(b=>{
-
     b.classList.toggle('active',b.dataset.theme===t);
-
   });
-
 }
-
 document.querySelectorAll('.theme-dot').forEach(b=>{
-
   b.addEventListener('click',()=>applyTheme(b.dataset.theme));
-
 });
-
-applyTheme(localStorage.getItem(THEME_KEY)||'dark');/* ===== 数据 ===== */
-
+applyTheme(localStorage.getItem(THEME_KEY)||'dark');
 const $=s=>document.querySelector(s);
-
 const dk=d=>d.toLocaleDateString('sv-SE');
-
 const todayKey=()=>dk(new Date());
-
 const shiftDay=(k,n)=>{const d=new Date(k+'T00:00:00');d.setDate(d.getDate()+n);return dk(d);};
-
 const uid=()=>Date.now().toString(36)+Math.random().toString(36).slice(2,7);
-
-const esc=s=>s.replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
-
-let db=JSON.parse(localStorage.getItem(KEY)||'null')||{
-
-  quads:[{n:'工作',c:'#5b8def'},{n:'生活',c:'#f2994a'},{n:'学习',c:'#27ae60'},{n:'健康',c:'#eb5757'}],
-
-  tasks:[]
-
-};
-
-const save=()=>localStorage.setItem(KEY,JSON.stringify(db));
-
-/* 折叠状态存储 */
-
-let collapsedState=JSON.parse(localStorage.getItem(COLLAPSE_KEY)||'{}');
-
-/* 所有有任务的日期 + 今天，倒序（最新在最上） */
-
-function datesToRender(){
-
+const esc=s=>String(s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+function defaultQuads(){
+  return [
+    {n:'工作', c:'#5b8def', hidden:false},
+    {n:'生活', c:'#f2994a', hidden:false},
+    {n:'学习', c:'#27ae60', hidden:false},
+    {n:'健康', c:'#eb5757', hidden:false}
+  ];
+}
+function defaultDb(){
+  return {
+    dayQuads: {},
+    tasks: []
+  };
+}
+function getDayQuads(date){
+  if(!db.dayQuads[date]){
+    db.dayQuads[date] = defaultQuads();
+  }
+  const qs = db.dayQuads[date];
+  while (qs.length < 4) qs.push(defaultQuads()[qs.length] || {n:'象限',c:'#888',hidden:false});
+  return qs;
+}
+function normalizeDb(raw){
+  const db = { dayQuads: {}, tasks: [] };
+  if(raw && typeof raw.dayQuads === 'object'){
+    Object.keys(raw.dayQuads).forEach(d=>{
+      const arr = raw.dayQuads[d];
+      if(!Array.isArray(arr)) return;
+      db.dayQuads[d] = arr.map(q=>({
+        n: q && q.n != null ? String(q.n) : '',
+        c: q && q.c ? String(q.c) : '#888',
+        hidden: !!(q && q.hidden)
+      }));
+    })
+  }
+  if(raw && Array.isArray(raw.tasks)){
+    db.tasks = raw.tasks
+      .filter(t => t && typeof t === 'object' && typeof t.title === 'string' && t.date)
+      .map(t=>({
+        id: t.id ? String(t.id) : uid(),
+        date: String(t.date),
+        qi: Number.isInteger(t.qi) ? t.qi : 0,
+        title: String(t.title),
+        done: !!t.done,
+        createdAt: typeof t.createdAt === 'number' ? t.createdAt : 0,
+        note: t.note ? String(t.note) : '',
+        due: t.due ? String(t.due) : ''
+      }));
+  }
+  return db;
+}
+let db;
+try{
+  db = normalizeDb(JSON.parse(localStorage.getItem(KEY) || 'null'));
+}catch(e){
+  db = defaultDb();
+}
+function save(){
+  try{
+    localStorage.setItem(KEY, JSON.stringify(db));
+  }catch(e){
+    alert('保存失败：本地存储空间不足或不可用。建议先点「⬇ 导出」备份数据，并清理浏览器存储。');
+  }
+}
+let collapsedState = {};
+try{ collapsedState = JSON.parse(localStorage.getItem(COLLAPSE_KEY) || '{}'); }catch(e){ collapsedState = {}; }
+let _index = null;
+let _indexDirty = true;
+function markDirty(){ _indexDirty = true; }
+function getIndex(){
+  if (!_indexDirty && _index) return _index;
+  const map = new Map();
+  for (const t of db.tasks){
+    let day = map.get(t.date);
+    if (!day){ day = [[],[],[],[]]; map.set(t.date, day); }
+    let arr = day[t.qi];
+    if (!arr){ arr = day[t.qi] = []; }
+    arr.push(t);
+  }
+  for (const day of map.values()){
+    for (const arr of day) arr.sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
+  }
+  _index = map;
+  _indexDirty = false;
+  return map;
+}
+let visibleDays = 30;
+const PAGE_SIZE = 30;
+function allDates(){
   const set=new Set(db.tasks.map(t=>t.date));
-
   set.add(todayKey());
-
   return [...set].sort((a,b)=>b.localeCompare(a));
-
 }
-
-function updateCount(sec,date,qi){
-
-  const list=db.tasks.filter(x=>x.date===date&&x.qi===qi);
-
-  const c=sec.querySelector('.qcount');
-
-  if(c) c.textContent=`${list.filter(x=>!x.done).length}/${list.length}`;
-
-}function createTaskEl(task,sec,date,qi){
-
-  const el=document.createElement('div');
-
-  el.className='task'+(task.done?' done':'');
-
-  el.dataset.taskId=task.id;
-
-  el.innerHTML=`<span class="chk">✓</span><span class="txt">${esc(task.title)}</span><button class="del" title="删除">×</button>`;
-
-  const toggle=()=>{
-
-    task.done=!task.done; save();
-
-    el.classList.toggle('done',task.done);
-
-    updateCount(sec,date,qi);
-
-  };
-
-  el.querySelector('.chk').onclick=toggle;
-
-  el.querySelector('.txt').onclick=toggle;
-
-  el.querySelector('.del').onclick=e=>{
-
-    e.stopPropagation();
-
-    db.tasks=db.tasks.filter(x=>x.id!==task.id);
-
-    save();
-
-    render();
-
-  };
-
-  return el;
-
+function getDueState(task){
+  if (!task.due || task.done) return '';
+  const t = new Date(task.due).getTime();
+  if (isNaN(t)) return '';
+  const now = Date.now();
+  if (t < now) return 'overdue';
+  if (t - now < 24*3600*1000) return 'soon';
+  return '';
 }
-
-function render(){
-
-  const main=$('#main');
-
-  const st=main.scrollTop;
-
-  main.innerHTML='';
-
-  const tkey=todayKey();
-
-  
-
-  datesToRender().forEach(date=>{
-
-    const isToday=date===tkey;
-
-    const isPast=date<tkey;
-
-    
-
-    let isCollapsed;
-
-    if (collapsedState[date] !== undefined) {
-
-      isCollapsed = collapsedState[date];
-
-    } else {
-
-      isCollapsed = isPast;
-
-    }
-
-    const d=new Date(date+'T00:00:00');
-
-    const wd='日一二三四五六'[d.getDay()];
-
-    const block=document.createElement('section');
-
-    block.className='day-block' + (isCollapsed ? ' collapsed' : '');
-
-    block.dataset.date=date;
-
-    block.innerHTML=`<div class="day-head${isToday?' today':''}">
-
-        <span class="day-date">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>
-
-        <span class="day-wd">周${wd}</span>
-
-        ${isToday?'<span class="today-tag">今天</span>':''}
-
-        <span class="collapse-icon" title="点击折叠/展开">▼</span>
-
-      </div>`;
-
-      
-
-    block.querySelector('.collapse-icon').onclick = (e) => {
-
-      e.stopPropagation();
-
-      const currentlyCollapsed = block.classList.toggle('collapsed');
-
-      collapsedState[date] = currentlyCollapsed;
-
-      localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
-
+function formatDue(v){
+  if (!v) return '';
+  const d = new Date(v);
+  if (isNaN(d)) return v;
+  const nowY = new Date().getFullYear();
+  const y = d.getFullYear(), m = d.getMonth()+1, day = d.getDate();
+  const hh = String(d.getHours()).padStart(2,'0');
+  const mm = String(d.getMinutes()).padStart(2,'0');
+  return (y===nowY ? '' : `${y}-`) + `${m}-${day} ${hh}:${mm}`;
+}
+function buildTaskMeta(task){
+  const parts = [];
+  const st = getDueState(task);
+  if (task.due && !task.done){
+    const label = st === 'overdue' ? '已过期' : st === 'soon' ? '即将到期' : '截止';
+    parts.push(`<span class="due ${st}">⏰ ${label} ${esc(formatDue(task.due))}</span>`);
+  } else if (task.due && task.done){
+    parts.push(`<span class="due">⏰ ${esc(formatDue(task.due))}</span>`);
+  }
+  if (task.note) parts.push(`<span class="note">📝 ${esc(task.note)}</span>`);
+  return parts.length ? `<span class="task-meta">${parts.join('')}</span>` : '';
+}
+let toastTimer = null;
+function showToast(msg, onUndo){
+  const el = $('#toast');
+  el.innerHTML = `<span>${esc(msg)}</span>`;
+  if (onUndo){
+    const btn = document.createElement('button');
+    btn.textContent = '撤销';
+    btn.onclick = () => {
+      clearTimeout(toastTimer);
+      el.classList.remove('show');
+      onUndo();
     };
-
-    const grid=document.createElement('div');
-
-    grid.className='day-grid';    db.quads.forEach((q,i)=>{
-
-      const list=db.tasks.filter(x=>x.date===date&&x.qi===i)
-
-        .sort((a,b)=>(a.createdAt||0)-(b.createdAt||0));
-
-      const sec=document.createElement('section');
-
-      sec.className='quadrant';
-
-      sec.style.setProperty('--c',q.c);
-
-      sec.innerHTML=`<div class="qhead">
-
-          <span class="qname">${esc(q.n)}</span>
-
-          <span class="qcount">${list.filter(x=>!x.done).length}/${list.length}</span>
-
-        </div>
-
-        <div class="tasks"></div>
-
-        <div class="addrow">
-
-          <input class="add" type="text" placeholder="＋ 添加任务" enterkeyhint="done" data-date="${date}" data-qi="${i}">
-
-          <button class="addbtn" title="添加任务">＋</button>
-
-        </div>`;
-
-      const box=sec.querySelector('.tasks');
-
-      list.forEach(task=>box.appendChild(createTaskEl(task,sec,date,i)));
-
-      const inp=sec.querySelector('.add');
-
-      const btn=sec.querySelector('.addbtn');
-
-      const addTask=()=>{
-
-        const v=inp.value.trim();
-
-        if(!v){inp.focus();return;}
-
-        db.tasks.push({id:uid(),date,qi:i,title:v,done:false,createdAt:Date.now()});
-
-        save();
-
-        render();
-
-        const ni=document.querySelector(`.add[data-date="${date}"][data-qi="${i}"]`);
-
-        if(ni){
-
-          ni.focus();
-
-          const nb=ni.closest('.quadrant').querySelector('.tasks');
-
-          nb.scrollTop=nb.scrollHeight;
-
-        }
-
-      };
-
-      btn.onclick=addTask;
-
-      inp.onkeydown=e=>{ if(e.key==='Enter'||e.keyCode===13){e.preventDefault();addTask();} };
-
-      grid.appendChild(sec);
-
-    });
-
-    block.appendChild(grid);
-
-    main.appendChild(block);
-
-  });
-
-  main.scrollTop=st;
-
-  if (searchMode === 'delete') renderDeletePanel();
-
-}/* 滚动到今天 */
-
-function scrollToToday(){
-
-  const t=todayKey();
-
-  const block=document.querySelector(`.day-block[data-date="${t}"]`);
-
-  if(block && block.classList.contains('collapsed')){
-
-    block.classList.remove('collapsed');
-
-    collapsedState[t]=false;
-
-    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
-
+    el.appendChild(btn);
   }
-
-  if(block) block.scrollIntoView({behavior:'smooth',block:'start'});
-
+  el.classList.add('show');
+  clearTimeout(toastTimer);
+  toastTimer = setTimeout(()=>el.classList.remove('show'), 4000);
 }
-
-$('#todayBtn').onclick=scrollToToday;
-
-/* 顺延昨日未完成到今天 */
-
-$('#carry').onclick=()=>{
-
-  const t=todayKey();
-
-  const prev=shiftDay(t,-1);
-
-  const exist=new Set(db.tasks.filter(x=>x.date===t).map(x=>x.title));
-
-  let n=0;
-
-  db.tasks.filter(x=>x.date===prev&&!x.done).forEach(x=>{
-
-    if(exist.has(x.title))return;
-
-    db.tasks.push({id:uid(),date:t,qi:x.qi,title:x.title,done:false,createdAt:Date.now()});
-
-    n++;
-
-  });
-
-  save(); render();
-
-  setTimeout(scrollToToday,60);
-
-  const btn=$('#carry');
-
-  btn.textContent=n?`已顺延 ${n} 项`:'昨日无未完成';
-
-  setTimeout(()=>btn.textContent='⟲ 顺延昨日未完成',1500);
-
-};/* ===== 搜索功能 ===== */
-
-let searchMode = 'keyword';
-
-let searchTimer = null;
-
-// 切换模式
-
-document.querySelectorAll('.mode-btn').forEach(btn => {
-
-  btn.addEventListener('click', () => {
-
-    document.querySelectorAll('.mode-btn').forEach(b => b.classList.remove('active'));
-
-    btn.classList.add('active');
-
-    searchMode = btn.dataset.mode;
-
-    $('#searchPanel').style.display = 'none';
-
-    $('#searchPanel').innerHTML = '';
-
-    $('#dateInput').value = '';
-
-    $('#deletePanel').classList.remove('show');
-
-    if (searchMode === 'keyword') {
-
-      $('#searchInput').style.display = 'block';
-
-      $('#dateInput').style.display = 'none';
-
-      $('#searchInput').focus();
-
-    } else if (searchMode === 'date') {
-
-      $('#searchInput').style.display = 'none';
-
-      $('#dateInput').style.display = 'block';
-
-      try { $('#dateInput').showPicker(); } catch(e) {}
-
-    } else if (searchMode === 'delete') {
-
-      $('#searchInput').style.display = 'none';
-
-      $('#dateInput').style.display = 'none';
-
-      renderDeletePanel();
-
+function updateCount(sec, date, qi){
+  const day = getIndex().get(date);
+  const list = (day && day[qi]) || [];
+  let done = 0;
+  for (const t of list) if (t.done) done++;
+  const c = sec.querySelector('.qcount');
+  if (c) c.textContent = `${list.length - done}/${list.length}`;
+}
+let editingTask = null;
+function openTaskModal(task){
+  editingTask = task;
+  $('#editTitle').value = task.title || '';
+  $('#editNote').value = task.note || '';
+  $('#editDue').value = task.due || '';
+  $('#taskModal').classList.add('show');
+  setTimeout(()=>$('#editTitle').focus(), 60);
+}
+function closeTaskModal(){
+  $('#taskModal').classList.remove('show');
+  editingTask = null;
+}
+$('#taskSave').onclick = () => {
+  if (!editingTask) return;
+  const title = $('#editTitle').value.trim();
+  if (!title){ alert('标题不能为空'); $('#editTitle').focus(); return; }
+  editingTask.title = title;
+  editingTask.note = $('#editNote').value.trim();
+  editingTask.due = $('#editDue').value || '';
+  save();
+  closeTaskModal();
+  render();
+};
+$('#taskCancel').onclick = closeTaskModal;
+$('#taskModal').onclick = (e)=>{ if (e.target === $('#taskModal')) closeTaskModal(); };
+function startInlineEdit(taskEl, task){
+  if (taskEl.querySelector('.inline-edit')) return;
+  const txt = taskEl.querySelector('.txt');
+  if (!txt) return;
+  const original = task.title;
+  const input = document.createElement('input');
+  input.type = 'text';
+  input.className = 'inline-edit';
+  input.value = original;
+  input.maxLength = 200;
+  txt.replaceWith(input);
+  input.focus();
+  input.select();
+  let finished = false;
+  const finish = (doSave) => {
+    if (finished) return;
+    finished = true;
+    if (doSave){
+      const v = input.value.trim();
+      if (v && v !== original){ task.title = v; save(); }
     }
-
-  });
-
-});
-
-// 多选删除面板
-
-function renderDeletePanel(){
-
-  const panel = $('#deletePanel');
-
-  if (searchMode !== 'delete') { panel.classList.remove('show'); panel.innerHTML = ''; return; }
-
-  const dates = [...new Set(db.tasks.map(t => t.date))].sort((a, b) => b.localeCompare(a));
-
-  if (!dates.length) {
-
-    panel.innerHTML = '<div class="dp-empty">暂无任何任务</div>';
-
-    panel.classList.add('show');
-
-    return;
-
-  }
-
-  const items = dates.map(d => {
-
-    const n = db.tasks.filter(t => t.date === d).length;
-
-    const dd = new Date(d + 'T00:00:00');
-
-    const ds = `${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()} 周${'日一二三四五六'[dd.getDay()]}`;
-
-    return `<label class="dp-item"><input type="checkbox" value="${d}"><span class="dp-date">${ds}</span><span class="dp-count">${n} 条</span></label>`;
-
-  }).join('');
-
-  const tools = `<div class="dp-tools"><button id="dpSelectAll">全选</button><button id="dpDelete" class="dp-danger">删除选中</button></div>`;
-
-  panel.innerHTML = items + tools;
-
-  panel.classList.add('show');
-
-  $('#dpSelectAll').onclick = () => {
-
-    const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
-
-    const all = boxes.length && boxes.every(b => b.checked);
-
-    boxes.forEach(b => b.checked = !all);
-
-    $('#dpSelectAll').textContent = all ? '全选' : '取消全选';
-
+    render();
   };
-
-  panel.querySelectorAll('input[type=checkbox]').forEach(b => {
-
-    b.addEventListener('change', () => {
-
-      const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
-
-      const all = boxes.length && boxes.every(x => x.checked);
-
-      $('#dpSelectAll').textContent = all ? '取消全选' : '全选';
-
-    });
-
-  });
-
-  $('#dpDelete').onclick = () => {
-
-    const sel = [...panel.querySelectorAll('input[type=checkbox]:checked')].map(c => c.value);
-
-    if (!sel.length) { alert('请先勾选要删除的日期'); return; }
-
-    const total = sel.reduce((s, d) => s + db.tasks.filter(t => t.date === d).length, 0);
-
-    if (!confirm(`确定删除选中 ${sel.length} 个日期、共 ${total} 条任务？`)) return;
-
-    db.tasks = db.tasks.filter(t => !sel.includes(t.date));
-
-    sel.forEach(d => { delete collapsedState[d]; });
-
-    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
-
+  input.onblur = () => finish(true);
+  input.onkeydown = (e) => {
+    if (e.key === 'Enter'){ e.preventDefault(); input.blur(); }
+    else if (e.key === 'Escape'){ e.preventDefault(); input.onblur = null; finish(false); }
+  };
+}
+function createTaskEl(task, sec, date, qi){
+  const el = document.createElement('div');
+  const st = getDueState(task);
+  el.className = 'task' + (task.done?' done':'') + (st ? ' due-'+st : '');
+  el.dataset.taskId = task.id;
+  el.innerHTML = `
+    <span class="chk" role="checkbox" aria-checked="${task.done}" tabindex="0">✓</span>
+    <div class="task-body">
+      <span class="txt">${esc(task.title)}</span>
+      ${buildTaskMeta(task)}
+    </div>
+    <button class="edit" title="编辑（备注/截止）" aria-label="编辑任务">✎</button>
+    <button class="del" title="删除" aria-label="删除任务">×</button>
+  `;
+  const toggle = () => {
+    task.done = !task.done;
     save();
-
-    render();
-
+    el.classList.toggle('done', task.done);
+    el.querySelector('.chk').setAttribute('aria-checked', String(task.done));
+    const newSt = getDueState(task);
+    el.classList.remove('due-soon','due-overdue');
+    if (newSt) el.classList.add('due-'+newSt);
+    const oldMeta = el.querySelector('.task-meta');
+    const newMetaHtml = buildTaskMeta(task);
+    if (oldMeta) oldMeta.outerHTML = newMetaHtml || '';
+    else if (newMetaHtml){
+      el.querySelector('.task-body').insertAdjacentHTML('beforeend', newMetaHtml);
+    }
+    updateCount(sec, date, qi);
   };
-
-}// 关键词搜索
-
-function highlight(text,kw){
-
-  const i=text.toLowerCase().indexOf(kw);
-
-  if(i<0) return esc(text);
-
-  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+kw.length))+'</mark>'+esc(text.slice(i+kw.length));
-
-}
-
-function doKeywordSearch(raw){
-
-  const panel=$('#searchPanel');
-
-  const kw=raw.trim().toLowerCase();
-
-  if(!kw){panel.style.display='none';panel.innerHTML='';return;}
-
-  const matches=db.tasks
-
-    .filter(t=>t.title.toLowerCase().includes(kw))
-
-    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
-
-  if(!matches.length){
-
-    panel.innerHTML='<div class="no-result">没有找到相关任务</div>';
-
-    panel.style.display='block';
-
-    return;
-
-  }
-
-  panel.innerHTML=matches.map(t=>{
-
-    const q=db.quads[t.qi]||{n:'',c:'#888'};
-
-    const dd=new Date(t.date+'T00:00:00');
-
-    const ds=`${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()}`;
-
-    return `<div class="s-item" data-id="${t.id}">
-
-      <span class="s-date">${ds}</span>
-
-      <span class="s-quad" style="color:${q.c}">${esc(q.n)}</span>
-
-      <span class="s-title${t.done?' done':''}">${highlight(t.title,kw)}</span>
-
-    </div>`;
-
-  }).join('');
-
-  panel.style.display='block';
-
-  panel.querySelectorAll('.s-item').forEach(el=>{
-
-    el.addEventListener('click',()=>{
-
-      const id=el.dataset.id;
-
-      panel.style.display='none';
-
-      $('#searchInput').value='';
-
-      $('#searchInput').blur();
-
-      setTimeout(()=>jumpToTask(id),30);
-
+  const chk = el.querySelector('.chk');
+  chk.onclick = toggle;
+  chk.onkeydown = (e) => {
+    if (e.key === ' ' || e.key === 'Enter'){ e.preventDefault(); toggle(); }
+  };
+  const txt = el.querySelector('.txt');
+  let clickTimer = null;
+  txt.onclick = () => {
+    if (clickTimer) return;
+    clickTimer = setTimeout(() => { clickTimer = null; toggle(); }, 220);
+  };
+  txt.ondblclick = (e) => {
+    e.preventDefault();
+    if (clickTimer){ clearTimeout(clickTimer); clickTimer = null; }
+    startInlineEdit(el, task);
+  };
+  el.querySelector('.edit').onclick = (e) => {
+    e.stopPropagation();
+    openTaskModal(task);
+  };
+  el.querySelector('.del').onclick = (e) => {
+    e.stopPropagation();
+    const ti = db.tasks.indexOf(task);
+    if (ti < 0) return;
+    db.tasks.splice(ti, 1);
+    const day = getIndex().get(date);
+    if (day && day[qi]){
+      const j = day[qi].indexOf(task);
+      if (j >= 0) day[qi].splice(j, 1);
+    }
+    save();
+    el.remove();
+    updateCount(sec, date, qi);
+    showToast('已删除任务', () => {
+      if (db.tasks.some(x => x.id === task.id)) return;
+      db.tasks.push(task);
+      markDirty();
+      save();
+      render();
     });
-
-  });
-
-}// 跳转并高亮任务
-
-function jumpToTask(id){
-
-  const el=document.querySelector(`.task[data-task-id="${id}"]`);
-
-  if(!el)return;
-
-  const block = el.closest('.day-block');
-
-  if(block && block.classList.contains('collapsed')){
-
-    block.classList.remove('collapsed');
-
-    collapsedState[block.dataset.date] = false;
-
-    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
-
-  }
-
-  setTimeout(() => {
-
-    el.scrollIntoView({behavior:'smooth',block:'center'});
-
-    el.classList.add('flash');
-
-    setTimeout(()=>el.classList.remove('flash'),1700);
-
-  }, 50);
-
+  };
+  return el;
 }
-
-$('#searchInput').addEventListener('input',e=>{
-
-  clearTimeout(searchTimer);
-
-  const v=e.target.value;
-
-  searchTimer=setTimeout(()=>doKeywordSearch(v),120);
-
-});
-
-// 日期搜索（删除模式走 deletePanel，不经过这里）
-
-$('#dateInput').addEventListener('change', e => {
-
-  const v = e.target.value;
-
-  if (!v) return;
-
-  if (searchMode === 'delete') { $('#dateInput').value = ''; $('#dateInput').blur(); return; }
-
-  const panel = $('#searchPanel');
-
-  const [y, m, d] = v.split('-');
-
-  const pretty = `${y}年${parseInt(m)}月${parseInt(d)}日`;
-
-  const block = document.querySelector(`.day-block[data-date="${v}"]`);
-
-  if (block) {
-
-    if (block.classList.contains('collapsed')) {
-
-      block.classList.remove('collapsed');
-
-      collapsedState[v] = false;
-
+let currentQuadSettingDate = null;
+function openQuadSettings(date){
+  currentQuadSettingDate = date;
+  const qs = getDayQuads(date);
+  const list = $('#quadList');
+  list.innerHTML = qs.map((q,i)=>`
+    <div class="quad-row" data-qi="${i}">
+      <input type="color" value="${q.c}" aria-label="颜色">
+      <input type="text" value="${esc(q.n)}" maxlength="12" aria-label="名称">
+      <label class="hid"><input type="checkbox" ${q.hidden?'checked':''}> 隐藏</label>
+    </div>
+  `).join('');
+  $('#quadSettingDate').textContent = `【${date}】`;
+  $('#quadSettings').classList.add('show');
+}
+function closeQuadSettings(){
+  $('#quadSettings').classList.remove('show');
+  currentQuadSettingDate = null;
+}
+$('#quadSettingsBtn').onclick = ()=>openQuadSettings(todayKey());
+$('#quadCancel').onclick = closeQuadSettings;
+$('#quadSave').onclick = () => {
+  if(!currentQuadSettingDate) return;
+  const rows = $('#quadList').querySelectorAll('.quad-row');
+  rows.forEach((row,i)=>{
+    const name = row.querySelector('input[type=text]').value.trim() || '未命名';
+    const color = row.querySelector('input[type=color]').value;
+    const hidden = row.querySelector('input[type=checkbox]').checked;
+    db.dayQuads[currentQuadSettingDate][i].n = name;
+    db.dayQuads[currentQuadSettingDate][i].c = color;
+    db.dayQuads[currentQuadSettingDate][i].hidden = hidden;
+  });
+  save();
+  closeQuadSettings();
+  render();
+};
+$('#quadReset').onclick = () => {
+  if(!currentQuadSettingDate) return;
+  if (!confirm('恢复这一天的象限为默认？其他日期不受影响')) return;
+  db.dayQuads[currentQuadSettingDate] = defaultQuads();
+  save();
+  openQuadSettings(currentQuadSettingDate);
+  render();
+};
+$('#quadSettings').onclick = (e)=>{ if (e.target === $('#quadSettings')) closeQuadSettings(); };
+function render(){
+  const main=$('#main');
+  const st=main.scrollTop;
+  main.innerHTML='';
+  const tkey=todayKey();
+  const idx = getIndex();
+  const all = allDates();
+  const total = all.length;
+  const dates = all.slice(0, visibleDays);
+  dates.forEach(date=>{
+    const qs = getDayQuads(date);
+    const isToday=date===tkey;
+    const isPast=date<tkey;
+    let isCollapsed;
+    if (collapsedState[date] !== undefined) isCollapsed = collapsedState[date];
+    else isCollapsed = isPast;
+    const d=new Date(date+'T00:00:00');
+    const wd='日一二三四五六'[d.getDay()];
+    const block=document.createElement('section');
+    block.className='day-block' + (isCollapsed ? ' collapsed' : '');
+    block.dataset.date=date;
+    block.innerHTML=`<div class="day-head${isToday?' today':''}">
+        <span class="day-date">${d.getFullYear()}年${d.getMonth()+1}月${d.getDate()}日</span>
+        <span class="day-wd">周${wd}</span>
+        ${isToday?'<span class="today-tag">今天</span>':''}
+        <button class="day-quad-set-btn" data-date="${date}" style="margin-left:8px;font-size:11px;padding:2px 6px">⚙当日象限</button>
+        <span class="collapse-icon" title="点击折叠/展开">▼</span>
+      </div>`;
+    block.querySelector('.collapse-icon').onclick = (e) => {
+      e.stopPropagation();
+      const currentlyCollapsed = block.classList.toggle('collapsed');
+      collapsedState[date] = currentlyCollapsed;
       localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
-
+    };
+    block.querySelector('.day-quad-set-btn').onclick = (e)=>{
+      e.stopPropagation();
+      openQuadSettings(date);
     }
-
-    block.scrollIntoView({behavior:'smooth', block:'start'});
-
-    const head = block.querySelector('.day-head');
-
-    if (head) {
-
-      head.style.background = 'var(--mark)';
-
-      setTimeout(() => { head.style.background = ''; }, 1000);
-
-    }
-
-    panel.style.display = 'none';
-
-    $('#dateInput').value = '';
-
-    $('#dateInput').blur();
-
-  } else {
-
-    panel.innerHTML = `<div class="no-result">${pretty} 暂无任务</div>`;
-
-    panel.style.display = 'block';
-
-    setTimeout(() => {
-
-      panel.style.display = 'none';
-
-      $('#dateInput').value = '';
-
-      $('#dateInput').blur();
-
-    }, 2000);
-
+    const grid=document.createElement('div');
+    grid.className='day-grid';
+    const day = idx.get(date);
+    qs.forEach((q,i)=>{
+      if (q.hidden) return;
+      const list = (day && day[i]) || [];
+      const sec=document.createElement('section');
+      sec.className='quadrant';
+      sec.style.setProperty('--c', q.c);
+      let doneN = 0;
+      for (const t of list) if (t.done) doneN++;
+      sec.innerHTML=`<div class="qhead">
+          <span class="qname">${esc(q.n)}</span>
+          <span class="qcount">${list.length - doneN}/${list.length}</span>
+        </div>
+        <div class="tasks"></div>
+        <div class="addrow">
+          <input class="add" type="text" placeholder="＋ 添加任务" enterkeyhint="done" data-date="${date}" data-qi="${i}">
+          <button class="addbtn" title="添加任务">＋</button>
+        </div>`;
+      const box=sec.querySelector('.tasks');
+      for (const task of list) box.appendChild(createTaskEl(task, sec, date, i));
+      const inp=sec.querySelector('.add');
+      const btn=sec.querySelector('.addbtn');
+      const addTask=()=>{
+        const v=inp.value.trim();
+        if(!v){ inp.focus(); return; }
+        const newTask = {id:uid(),date,qi:i,title:v,done:false,createdAt:Date.now(),note:'',due:''};
+        db.tasks.push(newTask);
+        const map = getIndex();
+        let dayRef = map.get(date);
+        if (!dayRef){ dayRef = [[],[],[],[]]; map.set(date, dayRef); }
+        if (!dayRef[i]) dayRef[i] = [];
+        dayRef[i].push(newTask);
+        save();
+        box.appendChild(createTaskEl(newTask, sec, date, i));
+        updateCount(sec, date, i);
+        inp.value='';
+        inp.focus();
+        box.scrollTop = box.scrollHeight;
+      };
+      btn.onclick=addTask;
+      inp.onkeydown=e=>{ if(e.key==='Enter'||e.keyCode===13){e.preventDefault();addTask();} };
+      grid.appendChild(sec);
+    });
+    block.appendChild(grid);
+    main.appendChild(block);
+  });
+  if (total > visibleDays){
+    const more = document.createElement('button');
+    more.className = 'load-more';
+    more.textContent = `加载更早的日期（还有 ${total - visibleDays} 天）`;
+    more.onclick = () => {
+      visibleDays += PAGE_SIZE;
+      const s = main.scrollTop;
+      render();
+      main.scrollTop = s;
+    };
+    main.appendChild(more);
   }
-
-});
-
-// 点击空白处：隐藏搜索结果 / 退出删除日期模式
-
-document.addEventListener('click',e=>{
-
-  const wrap=document.querySelector('.search-wrap');
-
-  if(wrap && !wrap.contains(e.target)){
-
-    const p=$('#searchPanel');
-
-    p.style.display='none';
-
-    // 点击搜索区外部时，退出删除日期模式
-
-    if (searchMode === 'delete') {
-
-      document.querySelectorAll('.mode-btn').forEach(b => {
-
-        b.classList.toggle('active', b.dataset.mode === 'keyword');
-
-      });
-
-      searchMode = 'keyword';
-
-      $('#searchInput').style.display = 'block';
-
-      $('#dateInput').style.display = 'none';
-
-      $('#deletePanel').classList.remove('show');
-
-      $('#deletePanel').innerHTML = '';
-
-    }
-
+  main.scrollTop = st;
+  if (searchMode === 'delete') renderDeletePanel();
+}
+function closeSearch(){
+  const p = $('#searchPanel');
+  p.style.display='none'; p.innerHTML='';
+  $('#searchInput').value='';
+  $('#dateInput').value='';
+  if (searchMode === 'delete'){
+    document.querySelectorAll('.mode-btn').forEach(b=>{
+      b.classList.toggle('active', b.dataset.mode==='keyword');
+    });
+    searchMode = 'keyword';
+    $('#searchInput').style.display = 'block';
+    $('#dateInput').style.display = 'none';
+    $('#deletePanel').classList.remove('show');
+    $('#deletePanel').innerHTML = '';
   }
-
-});
-
-/* 跨天自动刷新 */
-
-let lastToday=todayKey();
-
-setInterval(()=>{
-
+}
+function ensureDateVisible(date){
+  const all = allDates();
+  const idx = all.indexOf(date);
+  if (idx >= visibleDays){
+    visibleDays = Math.max(visibleDays, idx + 5);
+    return true;
+  }
+  return false;
+}
+function scrollToToday(){
+  closeSearch();
+  const t = todayKey();
+  let need = ensureDateVisible(t);
+  if (collapsedState[t] === true){
+    collapsedState[t] = false;
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+    need = true;
+  }
+  if (need) render();
+  setTimeout(()=>{
+    const block = document.querySelector(`.day-block[data-date="${t}"]`);
+    if (block) block.scrollIntoView({behavior:'smooth',block:'start'});
+  }, 30);
+}
+$('#todayBtn').onclick = scrollToToday;
+$('#carry').onclick=()=>{
   const t=todayKey();
-
-  if(t!==lastToday){
-
-    lastToday=t;
-
-    render();
-
+  const prev=shiftDay(t,-1);
+  const exist=new Set(db.tasks.filter(x=>x.date===t).map(x=>x.title));
+  let n=0;
+  const added = [];
+  db.tasks.filter(x=>x.date===prev&&!x.done).forEach(x=>{
+    if(exist.has(x.title))return;
+    const nt = {id:uid(),date:t,qi:x.qi,title:x.title,done:false,createdAt:Date.now(),note:x.note||'',due:x.due||''};
+    db.tasks.push(nt);
+    added.push(nt);
+    n++;
+  });
+  if (n){ markDirty(); save(); render(); }
+  else { save(); }
+  setTimeout(scrollToToday,60);
+  const btn=$('#carry');
+  btn.textContent=n?`已顺延 ${n} 项`:'昨日无未完成';
+  setTimeout(()=>btn.textContent='⟲ 顺延昨日未完成',1500);
+};
+function exportData(){
+  const data = {
+    app: 'cross4-dayquad',
+    version: 4,
+    exportedAt: new Date().toISOString(),
+    dayQuads: db.dayQuads,
+    tasks: db.tasks
+  };
+  const blob = new Blob([JSON.stringify(data, null, 2)], {type:'application/json'});
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement('a');
+  a.href = url;
+  a.download = `四格单日象限备份-${todayKey()}.json`;
+  document.body.appendChild(a);
+  a.click();
+  document.body.removeChild(a);
+  setTimeout(()=>URL.revokeObjectURL(url), 1200);
+  showToast(`已导出：${db.tasks.length} 条任务`);
+}
+$('#exportBtn').onclick = exportData;
+function importData(file){
+  const reader = new FileReader();
+  reader.onload = () => {
+    let parsed;
+    try {
+      parsed = JSON.parse(reader.result);
+    } catch(e){
+      alert('导入失败：文件不是有效的 JSON');
+      return;
+    }
+    try {
+      if (!parsed || (!parsed.dayQuads && !Array.isArray(parsed.tasks)))
+        throw new Error('缺少 dayQuads 或 tasks 字段');
+      if (!confirm(`导入将覆盖当前 ${db.tasks.length} 条任务，继续？\n（建议先点「⬇ 导出」保存一份）`)) return;
+      db = normalizeDb(parsed);
+      markDirty();
+      save();
+      visibleDays = 30;
+      render();
+      showToast(`导入成功：${db.tasks.length} 条任务`);
+    } catch(e){
+      alert('导入失败：' + e.message);
+    }
+  };
+  reader.onerror = () => alert('读取文件失败');
+  reader.readAsText(file);
+}
+$('#importBtn').onclick = () => {
+  $('#importFile').value = '';
+  $('#importFile').click();
+};
+$('#importFile').onchange = (e) => {
+  const f = e.target.files && e.target.files[0];
+  if (f) importData(f);
+  e.target.value = '';
+};
+let searchMode = 'keyword';
+let searchTimer = null;
+document.querySelectorAll('.mode-btn').forEach(btn=>{
+  btn.addEventListener('click', ()=>{
+    document.querySelectorAll('.mode-btn').forEach(b=>b.classList.remove('active'));
+    btn.classList.add('active');
+    searchMode = btn.dataset.mode;
+    $('#searchPanel').style.display = 'none';
+    $('#searchPanel').innerHTML = '';
+    $('#dateInput').value = '';
+    $('#deletePanel').classList.remove('show');
+    if (searchMode === 'keyword'){
+      $('#searchInput').style.display = 'block';
+      $('#dateInput').style.display = 'none';
+      $('#searchInput').focus();
+    } else if (searchMode === 'date'){
+      $('#searchInput').style.display = 'none';
+      $('#dateInput').style.display = 'block';
+      try { $('#dateInput').showPicker(); } catch(e){}
+    } else if (searchMode === 'delete'){
+      $('#searchInput').style.display = 'none';
+      $('#dateInput').style.display = 'none';
+      renderDeletePanel();
+    }
+  });
+});
+function renderDeletePanel(){
+  const panel = $('#deletePanel');
+  if (searchMode !== 'delete'){ panel.classList.remove('show'); panel.innerHTML=''; return; }
+  const dates = [...new Set(db.tasks.map(t=>t.date))].sort((a,b)=>b.localeCompare(a));
+  const rangeHtml = `
+    <div class="dp-range">
+      <div class="dp-range-inputs">
+        <input type="date" id="rangeFrom" aria-label="起始日期">
+        <span>至</span>
+        <input type="date" id="rangeTo" aria-label="结束日期">
+      </div>
+      <button id="dpRangeDelete" class="dp-danger">删除区间</button>
+    </div>`;
+  if (!dates.length){
+    panel.innerHTML = rangeHtml + '<div class="dp-empty">暂无任何任务</div>';
+    panel.classList.add('show');
+    bindRangeDelete();
+    return;
   }
-
-},30000);
-
+  const items = dates.map(d=>{
+    const n = db.tasks.filter(t=>t.date===d).length;
+    const dd = new Date(d+'T00:00:00');
+    const ds = `${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()} 周${'日一二三四五六'[dd.getDay()]}`;
+    return `<label class="dp-item"><input type="checkbox" value="${d}"><span class="dp-date">${ds}</span><span class="dp-count">${n} 条</span></label>`;
+  }).join('');
+  const tools = `<div class="dp-tools"><button id="dpSelectAll">全选</button><button id="dpDelete" class="dp-danger">删除选中</button></div>`;
+  panel.innerHTML = rangeHtml + items + tools;
+  panel.classList.add('show');
+  bindRangeDelete();
+  $('#dpSelectAll').onclick = () => {
+    const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
+    const all = boxes.length && boxes.every(b=>b.checked);
+    boxes.forEach(b=>b.checked = !all);
+    $('#dpSelectAll').textContent = all ? '全选' : '取消全选';
+  };
+  panel.querySelectorAll('input[type=checkbox]').forEach(b=>{
+    b.addEventListener('change', ()=>{
+      const boxes = [...panel.querySelectorAll('input[type=checkbox]')];
+      const all = boxes.length && boxes.every(x=>x.checked);
+      $('#dpSelectAll').textContent = all ? '取消全选' : '全选';
+    });
+  });
+  $('#dpDelete').onclick = () => {
+    const sel = [...panel.querySelectorAll('input[type=checkbox]:checked')].map(c=>c.value);
+    if (!sel.length){ alert('请先勾选要删除的日期'); return; }
+    const ids = db.tasks.filter(t => sel.includes(t.date)).map(t => t.id);
+    if (!ids.length) return;
+    if (!confirm(`确定删除选中 ${sel.length} 个日期、共 ${ids.length} 条任务？`)) return;
+    sel.forEach(d=>{
+      delete collapsedState[d];
+      delete db.dayQuads[d];
+    });
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+    removeTasksWithUndo(ids, `已删除 ${ids.length} 条任务`);
+    renderDeletePanel();
+  };
+}
+function bindRangeDelete(){
+  const btn = $('#dpRangeDelete');
+  if (!btn) return;
+  btn.onclick = () => {
+    const from = $('#rangeFrom').value;
+    const to = $('#rangeTo').value;
+    if (!from || !to){ alert('请选择起始和结束日期'); return; }
+    if (from > to){ alert('起始日期不能晚于结束日期'); return; }
+    const affected = db.tasks.filter(t => t.date >= from && t.date <= to);
+    if (!affected.length){ alert('该日期区间内没有任务'); return; }
+    if (!confirm(`确定删除 ${from} 至 ${to} 范围内的 ${affected.length} 条任务？`)) return;
+    Object.keys(collapsedState).forEach(k=>{
+      if (k >= from && k <= to) delete collapsedState[k];
+    });
+    Object.keys(db.dayQuads).forEach(k=>{
+      if (k >= from && k <= to) delete db.dayQuads[k];
+    });
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+    removeTasksWithUndo(affected.map(t=>t.id), `已删除 ${affected.length} 条任务`);
+    renderDeletePanel();
+  };
+}
+function removeTasksWithUndo(ids, msg){
+  if (!ids.length) return;
+  const idSet = new Set(ids);
+  const backup = db.tasks.filter(t => idSet.has(t.id));
+  if (!backup.length) return;
+  db.tasks = db.tasks.filter(t => !idSet.has(t.id));
+  markDirty();
+  save();
+  render();
+  showToast(msg, () => {
+    const existing = new Set(db.tasks.map(t => t.id));
+    backup.forEach(t => { if (!existing.has(t.id)) db.tasks.push(t); });
+    markDirty();
+    save();
+    render();
+  });
+}
+function highlight(text,kw){
+  const i=text.toLowerCase().indexOf(kw);
+  if(i<0) return esc(text);
+  return esc(text.slice(0,i))+'<mark>'+esc(text.slice(i,i+kw.length))+'</mark>'+esc(text.slice(i+kw.length));
+}
+function doKeywordSearch(raw){
+  const panel=$('#searchPanel');
+  const kw=raw.trim().toLowerCase();
+  if(!kw){ panel.style.display='none'; panel.innerHTML=''; return; }
+  const matches=db.tasks
+    .filter(t=>t.title.toLowerCase().includes(kw) ||
+               (t.note && t.note.toLowerCase().includes(kw)))
+    .sort((a,b)=>b.date.localeCompare(a.date)||(b.createdAt||0)-(a.createdAt||0));
+  if(!matches.length){
+    panel.innerHTML='<div class="no-result">没有找到相关任务</div>';
+    panel.style.display='block';
+    return;
+  }
+  panel.innerHTML=matches.map(t=>{
+    const qs = getDayQuads(t.date);
+    const q=qs[t.qi]||{n:'',c:'#888'};
+    const dd=new Date(t.date+'T00:00:00');
+    const ds=`${dd.getFullYear()}/${dd.getMonth()+1}/${dd.getDate()}`;
+    return `<div class="s-item" data-id="${t.id}">
+      <span class="s-date">${ds}</span>
+      <span class="s-quad" style="color:${q.c}">${esc(q.n)}</span>
+      <span class="s-title${t.done?' done':''}">${highlight(t.title,kw)}</span>
+    </div>`;
+  }).join('');
+  panel.style.display='block';
+  panel.querySelectorAll('.s-item').forEach(el=>{
+    el.addEventListener('click',()=>{
+      const id=el.dataset.id;
+      panel.style.display='none';
+      $('#searchInput').value='';
+      $('#searchInput').blur();
+      setTimeout(()=>jumpToTask(id),30);
+    });
+  });
+}
+function jumpToTask(id){
+  const task = db.tasks.find(t=>t.id===id);
+  if (!task) return;
+  let need = ensureDateVisible(task.date);
+  if (collapsedState[task.date] === true){
+    collapsedState[task.date] = false;
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+    need = true;
+  }
+  if (need) render();
+  setTimeout(()=>{
+    const el = document.querySelector(`.task[data-task-id="${id}"]`);
+    if (!el) return;
+    el.scrollIntoView({behavior:'smooth', block:'center'});
+    el.classList.add('flash');
+    setTimeout(()=>el.classList.remove('flash'), 1700);
+  }, 60);
+}
+$('#searchInput').addEventListener('input', e=>{
+  clearTimeout(searchTimer);
+  const v=e.target.value;
+  searchTimer=setTimeout(()=>doKeywordSearch(v),120);
+});
+$('#dateInput').addEventListener('change', e=>{
+  const v = e.target.value;
+  if (!v) return;
+  if (searchMode === 'delete'){ $('#dateInput').value=''; $('#dateInput').blur(); return; }
+  let need = ensureDateVisible(v);
+  if (collapsedState[v] === true){
+    collapsedState[v] = false;
+    localStorage.setItem(COLLAPSE_KEY, JSON.stringify(collapsedState));
+    need = true;
+  }
+  if (need) render();
+  setTimeout(()=>{
+    const block = document.querySelector(`.day-block[data-date="${v}"]`);
+    const panel = $('#searchPanel');
+    const [y,m,d] = v.split('-');
+    const pretty = `${y}年${parseInt(m)}月${parseInt(d)}日`;
+    if (block){
+      block.scrollIntoView({behavior:'smooth', block:'start'});
+      const head = block.querySelector('.day-head');
+      if (head){
+        head.style.background = 'var(--mark)';
+        setTimeout(()=>{ head.style.background=''; }, 1000);
+      }
+      panel.style.display='none';
+    } else {
+      panel.innerHTML = `<div class="no-result">${pretty} 暂无任务</div>`;
+      panel.style.display='block';
+      setTimeout(()=>{ panel.style.display='none'; }, 2000);
+    }
+    $('#dateInput').value='';
+    $('#dateInput').blur();
+  }, 30);
+});
+document.addEventListener('click', e=>{
+  const wrap = document.querySelector('.search-wrap');
+  if (wrap && !wrap.contains(e.target)){
+    const p = $('#searchPanel');
+    p.style.display='none';
+    if (searchMode === 'delete'){
+      document.querySelectorAll('.mode-btn').forEach(b=>{
+        b.classList.toggle('active', b.dataset.mode==='keyword');
+      });
+      searchMode = 'keyword';
+      $('#searchInput').style.display = 'block';
+      $('#dateInput').style.display = 'none';
+      $('#deletePanel').classList.remove('show');
+      $('#deletePanel').innerHTML = '';
+    }
+  }
+});
+let lastToday = todayKey();
+setInterval(()=>{
+  const t = todayKey();
+  if (t !== lastToday){
+    lastToday = t;
+    render();
+  }
+}, 30000);
 render();
-
 </script>
-
 </body>
-
 </html>
